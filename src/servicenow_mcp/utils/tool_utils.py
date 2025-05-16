@@ -1,4 +1,7 @@
-from typing import Any, Callable, Dict, Tuple, Type
+import re
+import re
+import requests
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
 # Import all necessary tool implementation functions and params models
 # (This list needs to be kept complete and up-to-date)
@@ -327,6 +330,116 @@ ToolDefinition = Tuple[
     str,  # Description
     str,  # Serialization method ('str', 'json', 'dict', 'model_dump', etc.)
 ]
+
+
+def get_record_by_id_or_name(
+    config: Any,
+    auth_manager: Any,
+    record_id: str,
+    table_name: str,
+    name_field: str = "name",
+    fields: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    """Helper function to get a record by ID or name from any ServiceNow table.
+    
+    Args:
+        config: The server configuration object.
+        auth_manager: The authentication manager.
+        record_id: The record ID or name to look up.
+        table_name: The ServiceNow table name.
+        name_field: The field name to use for name lookups (default: 'name').
+        fields: List of fields to return (default: all fields).
+        
+    Returns:
+        Dict containing 'success', 'message', and the record data if found.
+    """
+    try:
+        # Default fields to return if not specified
+        if fields is None:
+            fields = ["*"]
+            
+        # Build query parameters
+        query_params = {
+            "sysparm_display_value": "true",
+            "sysparm_exclude_reference_link": "true",
+            "sysparm_fields": ",".join(fields)
+        }
+        
+        # Determine if we're querying by sys_id or name
+        if record_id.startswith("sys_id:"):
+            # If explicitly prefixed with sys_id:
+            sys_id = record_id.replace("sys_id:", "")
+            url = f"{config.instance_url}/api/now/table/{table_name}/{sys_id}"
+            use_query_params = False
+        elif len(record_id) == 32 and bool(re.match(r'^[0-9a-fA-F]{32}$', record_id)):
+            # If it looks like a sys_id (32 hex chars)
+            url = f"{config.instance_url}/api/now/table/{table_name}/{record_id}"
+            use_query_params = False
+        else:
+            # Otherwise, treat it as a name
+            url = f"{config.instance_url}/api/now/table/{table_name}"
+            # Use exact match for name field
+            query_params["sysparm_query"] = f"{name_field}={record_id}^active=true"
+            query_params["sysparm_limit"] = "1"  # Only need one result
+            use_query_params = True
+            
+        # Make the request
+        headers = auth_manager.get_headers()
+        
+        response = requests.get(
+            url,
+            params=query_params if use_query_params else None,
+            headers=headers,
+            timeout=30,
+        )
+        response.raise_for_status()
+        
+        # Parse the response
+        data = response.json()
+        
+        if "result" not in data:
+            return {
+                "success": False,
+                "message": f"Record not found: {record_id}",
+            }
+            
+        # Handle both single result and list of results
+        result = data["result"]
+        if isinstance(result, list):
+            if not result:
+                return {
+                    "success": False,
+                    "message": f"Record not found: {record_id}",
+                }
+            item = result[0]
+        else:
+            item = result
+            
+        # Safely handle created_by and updated_by which might be strings or dicts
+        for field in ["sys_created_by", "sys_updated_by"]:
+            if field in item:
+                field_value = item[field]
+                if isinstance(field_value, dict):
+                    item[f"{field}_display"] = field_value.get("display_value")
+                else:
+                    item[f"{field}_display"] = field_value
+            
+        return {
+            "success": True,
+            "message": f"Found record: {item.get(name_field, '')}",
+            "record": item,
+        }
+        
+    except requests.exceptions.RequestException as e:
+        return {
+            "success": False,
+            "message": f"Error accessing {table_name}: {str(e)}",
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"Unexpected error: {str(e)}",
+        }
 
 
 def get_tool_definitions(

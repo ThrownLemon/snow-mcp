@@ -130,6 +130,15 @@ def list_script_includes(
         script_includes = []
         
         for item in data.get("result", []):
+            # Safely handle created_by and updated_by which might be strings or dicts
+            created_by = item.get("sys_created_by")
+            if isinstance(created_by, dict):
+                created_by = created_by.get("display_value")
+                
+            updated_by = item.get("sys_updated_by")
+            if isinstance(updated_by, dict):
+                updated_by = updated_by.get("display_value")
+                
             script_include = {
                 "sys_id": item.get("sys_id"),
                 "name": item.get("name"),
@@ -140,8 +149,8 @@ def list_script_includes(
                 "access": item.get("access"),
                 "created_on": item.get("sys_created_on"),
                 "updated_on": item.get("sys_updated_on"),
-                "created_by": item.get("sys_created_by", {}).get("display_value"),
-                "updated_by": item.get("sys_updated_by", {}).get("display_value"),
+                "created_by": created_by,
+                "updated_by": updated_by,
             }
             script_includes.append(script_include)
             
@@ -166,6 +175,82 @@ def list_script_includes(
         }
 
 
+def _get_script_include_by_id_or_name(
+    config: ServerConfig,
+    auth_manager: AuthManager,
+    script_include_id: str,
+) -> Dict[str, Any]:
+    """Helper function to get a script include by ID or name.
+    
+    Args:
+        config: The server configuration.
+        auth_manager: The authentication manager.
+        script_include_id: The script include ID or name.
+        
+    Returns:
+        A dictionary containing the script include data or error information.
+    """
+    from servicenow_mcp.utils.tool_utils import get_record_by_id_or_name
+    
+    # Define the fields we want to retrieve
+    fields = [
+        "sys_id", "name", "script", "description", "api_name", 
+        "client_callable", "active", "access", "sys_created_on", 
+        "sys_updated_on", "sys_created_by", "sys_updated_by"
+    ]
+    
+    # Use the shared utility function to get the record
+    result = get_record_by_id_or_name(
+        config=config,
+        auth_manager=auth_manager,
+        record_id=script_include_id,
+        table_name="sys_script_include",
+        name_field="name",
+        fields=fields
+    )
+    
+    # If there was an error, return it
+    if not result["success"] or "record" not in result:
+        return result
+        
+    # Process the record to match our expected format
+    item = result["record"]
+    
+    # Safely handle created_by and updated_by which might be strings or dicts
+    created_by = item.get("sys_created_by")
+    if isinstance(created_by, dict):
+        created_by = created_by.get("display_value")
+    elif "sys_created_by_display" in item:
+        created_by = item["sys_created_by_display"]
+        
+    updated_by = item.get("sys_updated_by")
+    if isinstance(updated_by, dict):
+        updated_by = updated_by.get("display_value")
+    elif "sys_updated_by_display" in item:
+        updated_by = item["sys_updated_by_display"]
+        
+    script_include = {
+        "sys_id": item.get("sys_id"),
+        "name": item.get("name"),
+        "script": item.get("script"),
+        "description": item.get("description"),
+        "api_name": item.get("api_name"),
+        "client_callable": item.get("client_callable") == "true",
+        "active": item.get("active") == "true",
+        "access": item.get("access"),
+        "created_on": item.get("sys_created_on"),
+        "updated_on": item.get("sys_updated_on"),
+        "created_by": created_by,
+        "updated_by": updated_by,
+    }
+    
+    return {
+        "success": True,
+        "message": f"Found script include: {item.get('name')}",
+        "script_include": script_include,
+    }
+
+
 def get_script_include(
     config: ServerConfig,
     auth_manager: AuthManager,
@@ -181,82 +266,11 @@ def get_script_include(
     Returns:
         A dictionary containing the script include data.
     """
-    try:
-        # Build query parameters
-        query_params = {
-            "sysparm_display_value": "true",
-            "sysparm_exclude_reference_link": "true",
-            "sysparm_fields": "sys_id,name,script,description,api_name,client_callable,active,access,sys_created_on,sys_updated_on,sys_created_by,sys_updated_by"
-        }
-        
-        # Determine if we're querying by sys_id or name
-        if params.script_include_id.startswith("sys_id:"):
-            sys_id = params.script_include_id.replace("sys_id:", "")
-            url = f"{config.instance_url}/api/now/table/sys_script_include/{sys_id}"
-        else:
-            # Query by name
-            url = f"{config.instance_url}/api/now/table/sys_script_include"
-            query_params["sysparm_query"] = f"name={params.script_include_id}"
-            
-        # Make the request
-        headers = auth_manager.get_headers()
-        
-        response = requests.get(
-            url,
-            params=query_params,
-            headers=headers,
-            timeout=30,
-        )
-        response.raise_for_status()
-        
-        # Parse the response
-        data = response.json()
-        
-        if "result" not in data:
-            return {
-                "success": False,
-                "message": f"Script include not found: {params.script_include_id}",
-            }
-            
-        # Handle both single result and list of results
-        result = data["result"]
-        if isinstance(result, list):
-            if not result:
-                return {
-                    "success": False,
-                    "message": f"Script include not found: {params.script_include_id}",
-                }
-            item = result[0]
-        else:
-            item = result
-            
-        script_include = {
-            "sys_id": item.get("sys_id"),
-            "name": item.get("name"),
-            "script": item.get("script"),
-            "description": item.get("description"),
-            "api_name": item.get("api_name"),
-            "client_callable": item.get("client_callable") == "true",
-            "active": item.get("active") == "true",
-            "access": item.get("access"),
-            "created_on": item.get("sys_created_on"),
-            "updated_on": item.get("sys_updated_on"),
-            "created_by": item.get("sys_created_by", {}).get("display_value"),
-            "updated_by": item.get("sys_updated_by", {}).get("display_value"),
-        }
-        
-        return {
-            "success": True,
-            "message": f"Found script include: {item.get('name')}",
-            "script_include": script_include,
-        }
-        
-    except Exception as e:
-        logger.error(f"Error getting script include: {e}")
-        return {
-            "success": False,
-            "message": f"Error getting script include: {str(e)}",
-        }
+    return _get_script_include_by_id_or_name(
+        config=config,
+        auth_manager=auth_manager,
+        script_include_id=params.script_include_id
+    )
 
 
 def create_script_include(
@@ -345,14 +359,17 @@ def update_script_include(
     Returns:
         A response indicating the result of the operation.
     """
-    # First, get the script include to update
-    get_params = GetScriptIncludeParams(script_include_id=params.script_include_id)
-    get_result = get_script_include(config, auth_manager, get_params)
+    # First, get the script include to update using our helper function
+    get_result = _get_script_include_by_id_or_name(
+        config=config,
+        auth_manager=auth_manager,
+        script_include_id=params.script_include_id
+    )
     
-    if not get_result["success"]:
+    if not get_result["success"] or "script_include" not in get_result:
         return ScriptIncludeResponse(
             success=False,
-            message=get_result["message"],
+            message=f"Script include not found: {params.script_include_id}",
         )
         
     script_include = get_result["script_include"]
@@ -444,14 +461,17 @@ def delete_script_include(
     Returns:
         A response indicating the result of the operation.
     """
-    # First, get the script include to delete
-    get_params = GetScriptIncludeParams(script_include_id=params.script_include_id)
-    get_result = get_script_include(config, auth_manager, get_params)
+    # First, get the script include to delete using our helper function
+    get_result = _get_script_include_by_id_or_name(
+        config=config,
+        auth_manager=auth_manager,
+        script_include_id=params.script_include_id
+    )
     
-    if not get_result["success"]:
+    if not get_result["success"] or "script_include" not in get_result:
         return ScriptIncludeResponse(
             success=False,
-            message=get_result["message"],
+            message=f"Script include not found: {params.script_include_id}",
         )
         
     script_include = get_result["script_include"]

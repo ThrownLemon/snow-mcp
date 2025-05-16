@@ -183,56 +183,51 @@ def get_catalog_item(
     Returns:
         Response containing the catalog item details
     """
-    logger.info(f"Getting service catalog item: {params.item_id}")
-    
-    # Build the API URL
-    url = f"{config.instance_url}/api/now/table/sc_cat_item/{params.item_id}"
-    
-    # Prepare query parameters
-    query_params = {
-        "sysparm_display_value": "true",
-        "sysparm_exclude_reference_link": "true",
-    }
-    
-    # Make the API request
-    headers = auth_manager.get_headers()
-    headers["Accept"] = "application/json"
-    
     try:
-        response = requests.get(url, headers=headers, params=query_params)
-        response.raise_for_status()
+        from servicenow_mcp.utils.tool_utils import get_record_by_id_or_name
         
-        # Process the response
-        result = response.json()
-        item = result.get("result", {})
+        # Use the shared utility function to get the record
+        result = get_record_by_id_or_name(
+            config=config,
+            auth_manager=auth_manager,
+            record_id=params.item_id,
+            table_name="sc_cat_item",
+            name_field="name"
+        )
         
-        if not item:
+        # If there was an error, return it
+        if not result["success"] or "record" not in result:
             return CatalogResponse(
                 success=False,
                 message=f"Catalog item not found: {params.item_id}",
                 data=None,
             )
+            
+        item = result["record"]
+        
+        # Get variables for the catalog item
+        variables = get_catalog_item_variables(config, auth_manager, item["sys_id"])
         
         # Format the response
         formatted_item = {
-            "sys_id": item.get("sys_id", ""),
-            "name": item.get("name", ""),
-            "short_description": item.get("short_description", ""),
-            "description": item.get("description", ""),
-            "category": item.get("category", ""),
-            "price": item.get("price", ""),
-            "picture": item.get("picture", ""),
-            "active": item.get("active", ""),
-            "order": item.get("order", ""),
-            "delivery_time": item.get("delivery_time", ""),
-            "availability": item.get("availability", ""),
-            "variables": get_catalog_item_variables(config, auth_manager, params.item_id),
+            "sys_id": item.get("sys_id"),
+            "name": item.get("name"),
+            "short_description": item.get("short_description"),
+            "description": item.get("description"),
+            "category": item.get("category"),
+            "price": item.get("price"),
+            "picture": item.get("picture"),
+            "active": item.get("active"),
+            "order": item.get("order"),
+            "delivery_time": item.get("delivery_time"),
+            "availability": item.get("availability"),
+            "variables": variables,
         }
         
         return CatalogResponse(
             success=True,
             message=f"Retrieved catalog item: {item.get('name', '')}",
-            data=formatted_item,
+            data={"item": formatted_item},
         )
     
     except requests.exceptions.RequestException as e:
@@ -255,28 +250,46 @@ def get_catalog_item_variables(
     Args:
         config: Server configuration
         auth_manager: Authentication manager
-        item_id: Catalog item ID or sys_id
+        item_id: Catalog item ID or name
 
     Returns:
         List of variables for the catalog item
     """
-    logger.info(f"Getting variables for catalog item: {item_id}")
-    
-    # Build the API URL
-    url = f"{config.instance_url}/api/now/table/item_option_new"
-    
-    # Prepare query parameters
-    query_params = {
-        "sysparm_query": f"cat_item={item_id}^ORDERBYorder",
-        "sysparm_display_value": "true",
-        "sysparm_exclude_reference_link": "true",
-    }
-    
-    # Make the API request
-    headers = auth_manager.get_headers()
-    headers["Accept"] = "application/json"
-    
     try:
+        from servicenow_mcp.utils.tool_utils import get_record_by_id_or_name
+        
+        # First, get the catalog item using our utility function to resolve name to ID if needed
+        item_result = get_record_by_id_or_name(
+            config=config,
+            auth_manager=auth_manager,
+            record_id=item_id,
+            table_name="sc_cat_item",
+            name_field="name"
+        )
+        
+        # If we can't find the item, return an empty list
+        if not item_result["success"] or "record" not in item_result:
+            logger.warning(f"Catalog item not found: {item_id}")
+            return []
+            
+        item = item_result["record"]
+        item_sys_id = item["sys_id"]
+        
+        # Build the API URL
+        url = f"{config.instance_url}/api/now/table/item_option_new"
+        
+        # Prepare query parameters
+        query_params = {
+            "sysparm_query": f"cat_item={item_sys_id}^ORDERBYorder",
+            "sysparm_display_value": "true",
+            "sysparm_exclude_reference_link": "true",
+            "sysparm_limit": 1000  # Increase limit to ensure we get all variables
+        }
+        
+        # Make the API request
+        headers = auth_manager.get_headers()
+        headers["Accept"] = "application/json"
+        
         response = requests.get(url, headers=headers, params=query_params)
         response.raise_for_status()
         
@@ -288,20 +301,33 @@ def get_catalog_item_variables(
         formatted_variables = []
         for variable in variables:
             formatted_variables.append({
-                "sys_id": variable.get("sys_id", ""),
-                "name": variable.get("name", ""),
-                "label": variable.get("question_text", ""),
-                "type": variable.get("type", ""),
-                "mandatory": variable.get("mandatory", ""),
-                "default_value": variable.get("default_value", ""),
-                "help_text": variable.get("help_text", ""),
-                "order": variable.get("order", ""),
+                "sys_id": variable.get("sys_id"),
+                "name": variable.get("name"),
+                "label": variable.get("question_text") or variable.get("name"),
+                "type": variable.get("type"),
+                "mandatory": variable.get("mandatory", False),
+                "default_value": variable.get("default_value"),
+                "help_text": variable.get("help_text"),
+                "order": variable.get("order", 0),
+                "reference_table": variable.get("reference"),
+                "reference_qualifier": variable.get("reference_qual"),
+                "reference_qual_condition": variable.get("reference_qual_condition"),
+                "dynamic_creation": variable.get("dynamic_creation", False),
+                "dynamic_creation_script": variable.get("dynamic_creation_script"),
+                "dynamic_default_value": variable.get("dynamic_default_value"),
+                "dynamic_ref_qual": variable.get("dynamic_ref_qual"),
             })
+        
+        # Sort variables by order
+        formatted_variables.sort(key=lambda x: int(x.get("order", 0)))
         
         return formatted_variables
     
     except requests.exceptions.RequestException as e:
-        logger.error(f"Error getting catalog item variables: {str(e)}")
+        logger.error(f"Error getting catalog item variables for item {item_id}: {str(e)}")
+        return []
+    except Exception as e:
+        logger.error(f"Unexpected error getting catalog item variables for item {item_id}: {str(e)}")
         return []
 
 
@@ -482,54 +508,74 @@ def update_catalog_category(
     Returns:
         Response containing the result of the operation
     """
-    logger.info(f"Updating service catalog category: {params.category_id}")
-    
-    # Build the API URL
-    url = f"{config.instance_url}/api/now/table/sc_category/{params.category_id}"
-    
-    # Prepare request body with only the provided parameters
-    body = {}
-    if params.title is not None:
-        body["title"] = params.title
-    if params.description is not None:
-        body["description"] = params.description
-    if params.parent is not None:
-        body["parent"] = params.parent
-    if params.icon is not None:
-        body["icon"] = params.icon
-    if params.active is not None:
-        body["active"] = str(params.active).lower()
-    if params.order is not None:
-        body["order"] = str(params.order)
-    
-    # Make the API request
-    headers = auth_manager.get_headers()
-    headers["Accept"] = "application/json"
-    headers["Content-Type"] = "application/json"
-    
     try:
+        from servicenow_mcp.utils.tool_utils import get_record_by_id_or_name
+        
+        # First, get the category to update using our utility function
+        get_result = get_record_by_id_or_name(
+            config=config,
+            auth_manager=auth_manager,
+            record_id=params.category_id,
+            table_name="sc_category",
+            name_field="title"
+        )
+        
+        # If there was an error, return it
+        if not get_result["success"] or "record" not in get_result:
+            return CatalogResponse(
+                success=False,
+                message=f"Catalog category not found: {params.category_id}",
+                data=None,
+            )
+            
+        category = get_result["record"]
+        sys_id = category["sys_id"]
+        
+        # Build the API URL with the resolved sys_id
+        url = f"{config.instance_url}/api/now/table/sc_category/{sys_id}"
+        
+        # Prepare request body with only the provided parameters
+        body = {}
+        if params.title is not None:
+            body["title"] = params.title
+        if params.description is not None:
+            body["description"] = params.description
+        if params.parent is not None:
+            body["parent"] = params.parent
+        if params.icon is not None:
+            body["icon"] = params.icon
+        if params.active is not None:
+            body["active"] = str(params.active).lower()
+        if params.order is not None:
+            body["order"] = str(params.order)
+        
+        # Make the API request
+        headers = auth_manager.get_headers()
+        headers["Accept"] = "application/json"
+        headers["Content-Type"] = "application/json"
+        
         response = requests.patch(url, headers=headers, json=body)
         response.raise_for_status()
         
         # Process the response
         result = response.json()
-        category = result.get("result", {})
+        updated_category = result.get("result", {})
         
         # Format the response
         formatted_category = {
-            "sys_id": category.get("sys_id", ""),
-            "title": category.get("title", ""),
-            "description": category.get("description", ""),
-            "parent": category.get("parent", ""),
-            "icon": category.get("icon", ""),
-            "active": category.get("active", ""),
-            "order": category.get("order", ""),
+            "sys_id": updated_category.get("sys_id"),
+            "title": updated_category.get("title"),
+            "description": updated_category.get("description"),
+            "parent": updated_category.get("parent"),
+            "icon": updated_category.get("icon"),
+            "active": updated_category.get("active"),
+            "order": updated_category.get("order"),
         }
         
         return CatalogResponse(
             success=True,
-            message=f"Updated catalog category: {params.category_id}",
-            data=formatted_category,
+            message=f"Updated catalog category: {updated_category.get('title', sys_id)}",
+            data={"category": formatted_category},
         )
     
     except requests.exceptions.RequestException as e:
@@ -557,24 +603,62 @@ def move_catalog_items(
     Returns:
         Response containing the result of the operation
     """
-    logger.info(f"Moving {len(params.item_ids)} catalog items to category: {params.target_category_id}")
-    
-    # Build the API URL
-    url = f"{config.instance_url}/api/now/table/sc_cat_item"
-    
-    # Make the API request for each item
-    headers = auth_manager.get_headers()
-    headers["Accept"] = "application/json"
-    headers["Content-Type"] = "application/json"
-    
-    success_count = 0
-    failed_items = []
-    
     try:
+        from servicenow_mcp.utils.tool_utils import get_record_by_id_or_name
+        
+        # First, get the target category using our utility function
+        category_result = get_record_by_id_or_name(
+            config=config,
+            auth_manager=auth_manager,
+            record_id=params.target_category_id,
+            table_name="sc_category",
+            name_field="title"
+        )
+        
+        # If there was an error, return it
+        if not category_result["success"] or "record" not in category_result:
+            return CatalogResponse(
+                success=False,
+                message=f"Target category not found: {params.target_category_id}",
+                data=None,
+            )
+            
+        target_category = category_result["record"]
+        target_category_id = target_category["sys_id"]
+        target_category_name = target_category.get("title", target_category_id)
+        
+        # Build the API URL
+        url = f"{config.instance_url}/api/now/table/sc_cat_item"
+        
+        # Make the API request for each item
+        headers = auth_manager.get_headers()
+        headers["Accept"] = "application/json"
+        headers["Content-Type"] = "application/json"
+        
+        success_count = 0
+        failed_items = []
+        
         for item_id in params.item_ids:
-            item_url = f"{url}/{item_id}"
+            # Get the item to move (to verify it exists)
+            item_result = get_record_by_id_or_name(
+                config=config,
+                auth_manager=auth_manager,
+                record_id=item_id,
+                table_name="sc_cat_item",
+                name_field="name"
+            )
+            
+            if not item_result["success"] or "record" not in item_result:
+                failed_items.append({"item_id": item_id, "error": "Item not found"})
+                continue
+                
+            item = item_result["record"]
+            item_sys_id = item["sys_id"]
+            
+            # Update the item's category
+            item_url = f"{url}/{item_sys_id}"
             body = {
-                "category": params.target_category_id
+                "category": target_category_id
             }
             
             try:
@@ -582,15 +666,20 @@ def move_catalog_items(
                 response.raise_for_status()
                 success_count += 1
             except requests.exceptions.RequestException as e:
-                logger.error(f"Error moving catalog item {item_id}: {str(e)}")
-                failed_items.append({"item_id": item_id, "error": str(e)})
+                error_msg = str(e)
+                logger.error(f"Error moving catalog item {item_id}: {error_msg}")
+                failed_items.append({"item_id": item_id, "error": error_msg})
         
         # Prepare the response
         if success_count == len(params.item_ids):
             return CatalogResponse(
                 success=True,
-                message=f"Successfully moved {success_count} catalog items to category {params.target_category_id}",
-                data={"moved_items_count": success_count},
+                message=f"Successfully moved {success_count} catalog items to category '{target_category_name}'",
+                data={
+                    "moved_items_count": success_count,
+                    "target_category_id": target_category_id,
+                    "target_category_name": target_category_name
+                },
             )
         elif success_count > 0:
             return CatalogResponse(
@@ -598,6 +687,8 @@ def move_catalog_items(
                 message=f"Partially moved catalog items. {success_count} succeeded, {len(failed_items)} failed.",
                 data={
                     "moved_items_count": success_count,
+                    "target_category_id": target_category_id,
+                    "target_category_name": target_category_name,
                     "failed_items": failed_items,
                 },
             )
@@ -608,6 +699,13 @@ def move_catalog_items(
                 data={"failed_items": failed_items},
             )
     
+    except Exception as e:
+        logger.error(f"Error moving catalog items: {str(e)}")
+        return CatalogResponse(
+            success=False,
+            message=f"Error moving catalog items: {str(e)}",
+            data=None,
+        ) 
     except Exception as e:
         logger.error(f"Error moving catalog items: {str(e)}")
         return CatalogResponse(
