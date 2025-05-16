@@ -215,4 +215,10 @@ full:
   - create_user_criteria_condition
   # UI Policy
   - create_ui_policy
+  # Table Tools
+  - list_tables
+  - get_records
+  - get_record
+  - get_table_schema
+  - list_table_schemas
   - create_ui_policy_action

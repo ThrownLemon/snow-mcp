@@ -8,10 +8,10 @@ slow fulfillment times, and poor descriptions.
 
 import logging
 import random
-from dataclasses import dataclass
 from typing import Dict, List, Optional
 
 import requests
+from pydantic import BaseModel, Field
 
 from servicenow_mcp.auth.auth_manager import AuthManager
 from servicenow_mcp.utils.config import ServerConfig
@@ -19,26 +19,28 @@ from servicenow_mcp.utils.config import ServerConfig
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class OptimizationRecommendationsParams:
+class OptimizationRecommendationsParams(BaseModel):
     """Parameters for getting optimization recommendations."""
+    recommendation_types: List[str] = Field(
+        ...,
+        description="List of recommendation types to include"
+    )
+    category_id: Optional[str] = Field(
+        None,
+        description="Optional category ID to filter recommendations by"
+    )
 
-    recommendation_types: List[str]
-    category_id: Optional[str] = None
 
-
-@dataclass
-class UpdateCatalogItemParams:
+class UpdateCatalogItemParams(BaseModel):
     """Parameters for updating a catalog item."""
-
-    item_id: str
-    name: Optional[str] = None
-    short_description: Optional[str] = None
-    description: Optional[str] = None
-    category: Optional[str] = None
-    price: Optional[str] = None
-    active: Optional[bool] = None
-    order: Optional[int] = None
+    item_id: str = Field(..., description="The sys_id of the catalog item to update")
+    name: Optional[str] = Field(None, description="New name for the catalog item")
+    short_description: Optional[str] = Field(None, description="New short description")
+    description: Optional[str] = Field(None, description="New detailed description")
+    category: Optional[str] = Field(None, description="New category sys_id")
+    price: Optional[str] = Field(None, description="New price")
+    active: Optional[bool] = Field(None, description="Whether the item should be active")
+    order: Optional[int] = Field(None, description="New display order")
 
 
 def get_optimization_recommendations(

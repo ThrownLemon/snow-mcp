@@ -206,7 +206,19 @@ class ServiceNowMCP:
                     definition
                 )
                 try:
-                    schema = params_model.model_json_schema()
+                    # Try to get schema using model_json_schema (Pydantic v2)
+                    if hasattr(params_model, 'model_json_schema'):
+                        schema = params_model.model_json_schema()
+                    # Fall back to schema (Pydantic v1)
+                    elif hasattr(params_model, 'schema'):
+                        schema = params_model.schema()
+                    # For dict type (like in list_table_schemas), create a simple schema
+                    elif params_model == dict:
+                        schema = {"type": "object", "properties": {}}
+                    else:
+                        schema = {"type": "object", "properties": {}}
+                        logger.warning(f"Could not determine schema for tool '{tool_name}'. Using empty schema.")
+                    
                     tool_list.append(
                         types.Tool(name=tool_name, description=description, inputSchema=schema)
                     )

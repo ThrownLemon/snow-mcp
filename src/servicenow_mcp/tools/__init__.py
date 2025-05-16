@@ -90,6 +90,10 @@ from servicenow_mcp.tools.workflow_tools import (
     update_workflow_activity,
 )
 
+from servicenow_mcp.tools.table_tools import list_tables
+from servicenow_mcp.tools.table_records_tools import get_records, get_record
+from servicenow_mcp.tools.table_schema_tools import get_table_schema, list_table_schemas
+
 # from servicenow_mcp.tools.problem_tools import create_problem, update_problem
 # from servicenow_mcp.tools.request_tools import create_request, update_request
 
@@ -175,6 +179,13 @@ __all__ = [
     "add_group_members",
     "remove_group_members",
     "list_groups",
+    
+    # Table tools
+    "list_tables",
+    "get_records",
+    "get_record",
+    "get_table_schema",
+    "list_table_schemas",
     
     # Future tools
     # "create_problem",

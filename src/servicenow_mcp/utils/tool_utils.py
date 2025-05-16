@@ -288,6 +288,25 @@ from servicenow_mcp.tools.workflow_tools import (
     update_workflow_activity as update_workflow_activity_tool,
 )
 
+# Table Tools
+from servicenow_mcp.tools.table_tools import (
+    ListTablesParams,
+    list_tables as list_tables_tool,
+)
+
+from servicenow_mcp.tools.table_records_tools import (
+    GetRecordsParams,
+    GetRecordParams,
+    get_records as get_records_tool,
+    get_record as get_record_tool,
+)
+
+from servicenow_mcp.tools.table_schema_tools import (
+    GetTableSchemaParams,
+    get_table_schema as get_table_schema_tool,
+    list_table_schemas as list_table_schemas_tool,
+)
+
 # Define a type alias for the Pydantic models or dataclasses used for params
 ParamsModel = Type[Any]  # Use Type[Any] for broader compatibility initially
 
@@ -397,15 +416,31 @@ def get_tool_definitions(
             get_optimization_recommendations_tool,
             OptimizationRecommendationsParams,
             str,  # Expects JSON string
-            "Get optimization recommendations for the service catalog.",
-            "json",  # Tool returns list/dict
+            """Get optimization recommendations for the service catalog.
+            
+            Parameters:
+                recommendation_types (List[str]): Types of recommendations to get
+                category_id (Optional[str]): Optional category ID to filter by
+            """,
+            "json_dict",  # Tool returns Pydantic model
         ),
         "update_catalog_item": (
             update_catalog_item_tool,
             UpdateCatalogItemParams,
             str,  # Expects JSON string
-            "Update a service catalog item.",
-            "json",  # Tool returns Pydantic model
+            """Update a service catalog item.
+            
+            Parameters:
+                item_id (str): The ID of the catalog item to update
+                name (Optional[str]): New name for the item
+                short_description (Optional[str]): New short description
+                description (Optional[str]): New detailed description
+                category (Optional[str]): New category
+                price (Optional[str]): New price
+                active (Optional[bool]): Whether the item is active
+                order (Optional[int]): Display order
+            """,
+            "json_dict",  # Tool returns Pydantic model
         ),
         # Catalog Variables
         "create_catalog_item_variable": (
@@ -785,6 +820,42 @@ def get_tool_definitions(
             ListGroupsParams,
             Dict[str, Any],  # Expects dict
             "List groups from ServiceNow with optional filtering",
+            "raw_dict",
+        ),
+        # Table Tools
+        "list_tables": (
+            list_tables_tool,
+            ListTablesParams,
+            Dict[str, Any],
+            "List tables in ServiceNow with optional filtering",
+            "raw_dict",
+        ),
+        "get_records": (
+            get_records_tool,
+            GetRecordsParams,
+            Dict[str, Any],
+            "Get records from a ServiceNow table with optional filtering",
+            "raw_dict",
+        ),
+        "get_record": (
+            get_record_tool,
+            GetRecordParams,
+            Dict[str, Any],
+            "Get a single record from a ServiceNow table by sys_id",
+            "raw_dict",
+        ),
+        "get_table_schema": (
+            get_table_schema_tool,
+            GetTableSchemaParams,
+            Dict[str, Any],
+            "Get the schema for a specific ServiceNow table",
+            "raw_dict",
+        ),
+        "list_table_schemas": (
+            list_table_schemas_tool,
+            dict,  # No parameters needed, use empty dict
+            Dict[str, Any],
+            "List all available table schemas in ServiceNow",
             "raw_dict",
         ),
     }
