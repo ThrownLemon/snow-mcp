@@ -307,6 +307,15 @@ from servicenow_mcp.tools.table_schema_tools import (
     list_table_schemas as list_table_schemas_tool,
 )
 
+from servicenow_mcp.tools.natural_language_tools import (
+    NaturalLanguageSearchParams,
+    NaturalLanguageUpdateParams,
+    UpdateScriptParams,
+    natural_language_search as natural_language_search_tool,
+    natural_language_update as natural_language_update_tool,
+    update_script as update_script_tool,
+)
+
 # Define a type alias for the Pydantic models or dataclasses used for params
 ParamsModel = Type[Any]  # Use Type[Any] for broader compatibility initially
 
@@ -856,6 +865,28 @@ def get_tool_definitions(
             dict,  # No parameters needed, use empty dict
             Dict[str, Any],
             "List all available table schemas in ServiceNow",
+            "raw_dict",
+        ),
+        # Natural Language Tools
+        "natural_language_search": (
+            natural_language_search_tool,
+            NaturalLanguageSearchParams,
+            Dict[str, Any],
+            "Search for records using natural language queries",
+            "raw_dict",
+        ),
+        "natural_language_update": (
+            natural_language_update_tool,
+            NaturalLanguageUpdateParams,
+            Dict[str, Any],
+            "Update records using natural language commands",
+            "raw_dict",
+        ),
+        "update_script": (
+            update_script_tool,
+            UpdateScriptParams,
+            Dict[str, Any],
+            "Update a script in ServiceNow (business rules, script includes, etc.)",
             "raw_dict",
         ),
     }

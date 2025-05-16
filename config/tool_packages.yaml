@@ -21,6 +21,9 @@ service_desk:
   # Knowledge Lookup
   - get_article
   - list_articles
+  # Natural Language
+  - natural_language_search
+  - natural_language_update
 
 catalog_builder:
   # Core Catalog
@@ -82,6 +85,8 @@ platform_developer:
   - update_script_include
   - delete_script_include
   - execute_script_include
+  # Script Management
+  - update_script
   # Workflows
   - list_workflows
   - get_workflow_details
@@ -187,6 +192,10 @@ full:
   - update_script_include
   - delete_script_include
   - execute_script_include
+  - update_script
+  # Natural Language
+  - natural_language_search
+  - natural_language_update
   # Knowledge Base
   - create_knowledge_base
   - list_knowledge_bases
