@@ -2,9 +2,6 @@
 trigger: always_on
 ---
 
-Rule number 1: THIS IS VERY IMPORTANT!!! I will follow the build-test-workflow.md workflow whenever we need to build and run the MCP server after making code changes.
-
-AI Coding Agent Guidelines for Building MCP Integration with ServiceNow (Key Points)
 1. Clarify Purpose and Context:
 The MCP (Message Consumer and Processor) server integration facilitates secure, efficient, fault-tolerant communication between ServiceNow and MID servers, optimizing message consumption and processing to support incident, task, and external interactions.
 2. Coding Best Practices:
@@ -45,4 +42,3 @@ Update documentation regularly alongside codebase.
 11. Use of IDE and Agent Optimization:
 Leverage IDE-integrated AI code-assistants/snippets for repetitive structures, formatting, linting, and security checking.
 Provide clear IDE debugging configurations (launch,json, test runners, and log analyzers).
-
