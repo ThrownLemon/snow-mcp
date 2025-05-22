@@ -485,11 +485,28 @@ def list_change_requests(
         change_requests = result.get("result", [])
         count = len(change_requests)
         
+        # Extract X-Total-Count header
+        total_count_header = response.headers.get("X-Total-Count")
+        total = count  # Default to count
+        
+        if total_count_header:
+            try:
+                total = int(total_count_header)
+            except ValueError:
+                logger.warning(
+                    "X-Total-Count header is not a valid integer: '%s'. Falling back to len(change_requests).",
+                    total_count_header
+                )
+        else:
+            logger.warning(
+                "X-Total-Count header missing from response. Falling back to len(change_requests)."
+            )
+            
         return {
             "success": True,
             "change_requests": change_requests,
             "count": count,
-            "total": count,  # Use count as total if total is not provided
+            "total": total,
         }
     except requests.exceptions.RequestException as e:
         logger.error(f"Error listing change requests: {e}")
