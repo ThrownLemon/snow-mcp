@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # ServiceNow MCP Tool Creation Prompt
 
 Use this prompt to guide the development of new tools for the ServiceNow MCP project. This structured approach ensures consistency in implementation, testing, and documentation.
@@ -221,67 +225,3 @@ result = {tool_name}({
     "param2": "value2"
 })
 ```
-
-### Response
-
-The tool returns a response with the following fields:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| success | boolean | Whether the operation was successful |
-| message | string | A message describing the result |
-| ... | ... | ... |
-```
-
-### 6. Update README.md
-
-Add the new tool to the appropriate section in README.md:
-
-```markdown
-#### {Tool Category} Tools
-
-1. **existing_tool** - Description of existing tool
-...
-N. **{tool_name}** - {Brief description of the new tool}
-```
-
-Also add example usage to the "Example Usage with Claude" section:
-
-```markdown
-#### {Tool Category} Examples
-- "Existing example query"
-...
-- "{Example natural language query that would use the new tool}"
-```
-
-## Testing Guidelines
-
-1. Write unit tests for all new functions and edge cases
-2. Mock all external API calls
-3. Test failure conditions and error handling
-4. Verify parameter validation
-
-## Documentation Guidelines
-
-1. Use clear, concise language
-2. Include all parameters and their descriptions
-3. Provide usage examples
-4. Document common errors and troubleshooting steps
-5. Update README.md to showcase the new functionality
-
-## Best Practices
-
-1. Follow existing code patterns and style
-2. Add appropriate error handling
-3. Include detailed logging
-4. Use meaningful variable and function names
-5. Add type hints and docstrings
-6. Keep functions focused and single-purpose
-
-## Example Natural Language Commands for Claude
-
-List examples of natural language prompts that users can give to Claude that would trigger the new tool:
-
-- "Prompt example 1"
-- "Prompt example 2"
-- "Prompt example 3" 
