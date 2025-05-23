@@ -27,7 +27,9 @@ class ListChangesetsParams(BaseModel):
     state: Optional[str] = Field(None, description="Filter by state")
     application: Optional[str] = Field(None, description="Filter by application")
     developer: Optional[str] = Field(None, description="Filter by developer")
-    timeframe: Optional[str] = Field(None, description="Filter by timeframe (recent, last_week, last_month)")
+    timeframe: Optional[str] = Field(
+        None, description="Filter by timeframe (recent, last_week, last_month)"
+    )
     query: Optional[str] = Field(None, description="Additional query string")
 
 
@@ -161,7 +163,9 @@ def _get_instance_url(auth_manager: AuthManager, server_config: ServerConfig) ->
     return None
 
 
-def _get_headers(auth_manager: AuthManager, server_config: ServerConfig) -> Optional[Dict[str, str]]:
+def _get_headers(
+    auth_manager: AuthManager, server_config: ServerConfig
+) -> Optional[Dict[str, str]]:
     """
     Get the headers from either auth_manager or server_config.
 
@@ -200,7 +204,8 @@ def list_changesets(
     Args:
         auth_manager: The authentication manager.
         server_config: The server configuration.
-        params: The parameters for listing changesets. Can be a dictionary or a ListChangesetsParams object.
+        params: The parameters for listing changesets.
+            Can be a dictionary or a ListChangesetsParams object.
 
     Returns:
         A list of changesets.
@@ -249,11 +254,20 @@ def list_changesets(
     
     if validated_params.timeframe:
         if validated_params.timeframe == "recent":
-            query_parts.append("sys_created_onONLast 7 days@javascript:gs.beginningOfLast7Days()@javascript:gs.endOfToday()")
+            query_parts.append(
+                "sys_created_onONLast 7 days@javascript:gs.beginningOfLast7Days()"
+                "@javascript:gs.endOfToday()"
+            )
         elif validated_params.timeframe == "last_week":
-            query_parts.append("sys_created_onONLast week@javascript:gs.beginningOfLastWeek()@javascript:gs.endOfLastWeek()")
+            query_parts.append(
+                "sys_created_onONLast week@javascript:gs.beginningOfLastWeek()"
+                "@javascript:gs.endOfLastWeek()"
+            )
         elif validated_params.timeframe == "last_month":
-            query_parts.append("sys_created_onONLast month@javascript:gs.beginningOfLastMonth()@javascript:gs.endOfLastMonth()")
+            query_parts.append(
+                "sys_created_onONLast month@javascript:gs.beginningOfLastMonth()"
+                "@javascript:gs.endOfLastMonth()"
+            )
     
     if validated_params.query:
         query_parts.append(validated_params.query)
@@ -294,7 +308,8 @@ def get_changeset_details(
     Args:
         auth_manager: The authentication manager.
         server_config: The server configuration.
-        params: The parameters for getting changeset details. Can be a dictionary or a GetChangesetDetailsParams object.
+        params: The parameters for getting changeset details.
+            Can be a dictionary or a GetChangesetDetailsParams object.
 
     Returns:
         Detailed information about the changeset.
@@ -376,7 +391,8 @@ def create_changeset(
     Args:
         auth_manager: The authentication manager.
         server_config: The server configuration.
-        params: The parameters for creating a changeset. Can be a dictionary or a CreateChangesetParams object.
+        params: The parameters for creating a changeset.
+            Can be a dictionary or a CreateChangesetParams object.
 
     Returns:
         The created changeset.
@@ -457,7 +473,8 @@ def update_changeset(
     Args:
         auth_manager: The authentication manager.
         server_config: The server configuration.
-        params: The parameters for updating a changeset. Can be a dictionary or a UpdateChangesetParams object.
+        params: The parameters for updating a changeset.
+            Can be a dictionary or a UpdateChangesetParams object.
 
     Returns:
         The updated changeset.
@@ -546,7 +563,8 @@ def commit_changeset(
     Args:
         auth_manager: The authentication manager.
         server_config: The server configuration.
-        params: The parameters for committing a changeset. Can be a dictionary or a CommitChangesetParams object.
+        params: The parameters for committing a changeset.
+            Can be a dictionary or a CommitChangesetParams object.
 
     Returns:
         The committed changeset.
@@ -624,7 +642,8 @@ def publish_changeset(
     Args:
         auth_manager: The authentication manager.
         server_config: The server configuration.
-        params: The parameters for publishing a changeset. Can be a dictionary or a PublishChangesetParams object.
+        params: The parameters for publishing a changeset.
+            Can be a dictionary or a PublishChangesetParams object.
 
     Returns:
         The published changeset.
@@ -702,7 +721,8 @@ def add_file_to_changeset(
     Args:
         auth_manager: The authentication manager.
         server_config: The server configuration.
-        params: The parameters for adding a file to a changeset. Can be a dictionary or a AddFileToChangesetParams object.
+        params: The parameters for adding a file to a changeset.
+            Can be a dictionary or a AddFileToChangesetParams object.
 
     Returns:
         The result of the add file operation.

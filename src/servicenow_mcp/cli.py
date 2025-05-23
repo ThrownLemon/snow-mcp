@@ -139,7 +139,8 @@ def create_config(args) -> ServerConfig:
         instance_url = os.getenv("SERVICENOW_INSTANCE_URL")
         if not instance_url:
             raise ValueError(
-                "ServiceNow instance URL is required (--instance-url or SERVICENOW_INSTANCE_URL env var)"
+                "ServiceNow instance URL is required (--instance-url or "
+                "SERVICENOW_INSTANCE_URL env var)"
             )
 
     # Create authentication configuration based on args
@@ -152,7 +153,8 @@ def create_config(args) -> ServerConfig:
         password = args.password or os.getenv("SERVICENOW_PASSWORD")  # Get password from arg or env
         if not username or not password:
             raise ValueError(
-                "Username and password are required for basic authentication (--username/SERVICENOW_USERNAME, --password/SERVICENOW_PASSWORD)"
+                "Username and password are required for basic authentication "
+                "(--username/SERVICENOW_USERNAME, --password/SERVICENOW_PASSWORD)"
             )
         # Create the specific config (without instance_url)
         basic_cfg = BasicAuthConfig(
@@ -172,8 +174,8 @@ def create_config(args) -> ServerConfig:
 
         if not client_id or not client_secret or not username or not password:
             raise ValueError(
-                "Client ID, client secret, username, and password are required for OAuth password grant"
-                " (--client-id/SERVICENOW_CLIENT_ID, etc.)"
+                "Client ID, client secret, username, and password are required "
+                "for OAuth password grant (--client-id/SERVICENOW_CLIENT_ID, etc.)"
             )
         if not token_url:
             # Attempt to construct default if not provided
@@ -217,7 +219,9 @@ def create_config(args) -> ServerConfig:
     )
     if not script_execution_api_resource_path:
         logger.warning(
-            "Script execution API resource path not set (--script-execution-api-resource-path or SCRIPT_EXECUTION_API_RESOURCE_PATH). ExecuteScriptInclude tool may fail."
+            "Script execution API resource path not set "
+            "(--script-execution-api-resource-path or "
+            "SCRIPT_EXECUTION_API_RESOURCE_PATH). ExecuteScriptInclude tool may fail."
         )
 
     # Create the final ServerConfig

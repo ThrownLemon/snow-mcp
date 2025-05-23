@@ -7,10 +7,8 @@ import logging
 from typing import Dict, Optional
 
 import requests
-from requests.auth import HTTPBasicAuth
 
 from servicenow_mcp.utils.config import AuthConfig, AuthType
-
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +21,7 @@ class AuthManager:
     different authentication methods.
     """
     
-    def __init__(self, config: AuthConfig):
+    def __init__(self, config: AuthConfig) -> None:
         """
         Initialize the authentication manager.
         
@@ -68,7 +66,7 @@ class AuthManager:
         
         return headers
     
-    def _get_oauth_token(self):
+    def _get_oauth_token(self) -> None:
         """
         Get an OAuth token from ServiceNow.
         
@@ -113,9 +111,9 @@ class AuthManager:
             
         except requests.RequestException as e:
             logger.error(f"Failed to get OAuth token: {e}")
-            raise ValueError(f"Failed to get OAuth token: {e}")
+            raise ValueError(f"Failed to get OAuth token: {e}") from e
     
-    def refresh_token(self):
+    def refresh_token(self) -> None:
         """Refresh the OAuth token if using OAuth authentication."""
         if self.config.type == AuthType.OAUTH:
             self._get_oauth_token() 

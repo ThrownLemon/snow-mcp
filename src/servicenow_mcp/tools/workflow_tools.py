@@ -5,7 +5,6 @@ This module provides tools for viewing and managing workflows in ServiceNow.
 """
 
 import logging
-from datetime import datetime
 from typing import Any, Dict, List, Optional, Type, TypeVar, Union
 
 import requests
@@ -59,7 +58,9 @@ class CreateWorkflowParams(BaseModel):
     description: Optional[str] = Field(None, description="Description of the workflow")
     table: Optional[str] = Field(None, description="Table the workflow applies to")
     active: Optional[bool] = Field(True, description="Whether the workflow is active")
-    attributes: Optional[Dict[str, Any]] = Field(None, description="Additional attributes for the workflow")
+    attributes: Optional[Dict[str, Any]] = Field(
+        None, description="Additional attributes for the workflow"
+    )
 
 
 class UpdateWorkflowParams(BaseModel):
@@ -70,7 +71,9 @@ class UpdateWorkflowParams(BaseModel):
     description: Optional[str] = Field(None, description="Description of the workflow")
     table: Optional[str] = Field(None, description="Table the workflow applies to")
     active: Optional[bool] = Field(None, description="Whether the workflow is active")
-    attributes: Optional[Dict[str, Any]] = Field(None, description="Additional attributes for the workflow")
+    attributes: Optional[Dict[str, Any]] = Field(
+        None, description="Additional attributes for the workflow"
+    )
 
 
 class ActivateWorkflowParams(BaseModel):
@@ -91,8 +94,12 @@ class AddWorkflowActivityParams(BaseModel):
     workflow_version_id: str = Field(..., description="Workflow version ID")
     name: str = Field(..., description="Name of the activity")
     description: Optional[str] = Field(None, description="Description of the activity")
-    activity_type: str = Field(..., description="Type of activity (e.g., 'approval', 'task', 'notification')")
-    attributes: Optional[Dict[str, Any]] = Field(None, description="Additional attributes for the activity")
+    activity_type: str = Field(
+        ..., description="Type of activity (e.g., 'approval', 'task', 'notification')"
+    )
+    attributes: Optional[Dict[str, Any]] = Field(
+        None, description="Additional attributes for the activity"
+    )
 
 
 class UpdateWorkflowActivityParams(BaseModel):
@@ -101,7 +108,9 @@ class UpdateWorkflowActivityParams(BaseModel):
     activity_id: str = Field(..., description="Activity ID or sys_id")
     name: Optional[str] = Field(None, description="Name of the activity")
     description: Optional[str] = Field(None, description="Description of the activity")
-    attributes: Optional[Dict[str, Any]] = Field(None, description="Additional attributes for the activity")
+    attributes: Optional[Dict[str, Any]] = Field(
+        None, description="Additional attributes for the activity"
+    )
 
 
 class DeleteWorkflowActivityParams(BaseModel):
@@ -155,11 +164,13 @@ def _get_auth_and_config(
         ValueError: If the parameters are not of the expected types.
     """
     # Check if the parameters are in the correct order
-    if isinstance(auth_manager_or_config, AuthManager) and isinstance(server_config_or_auth, ServerConfig):
+    if isinstance(auth_manager_or_config, AuthManager) and \
+       isinstance(server_config_or_auth, ServerConfig):
         return auth_manager_or_config, server_config_or_auth
     
     # Check if the parameters are swapped
-    if isinstance(auth_manager_or_config, ServerConfig) and isinstance(server_config_or_auth, AuthManager):
+    if isinstance(auth_manager_or_config, ServerConfig) and \
+       isinstance(server_config_or_auth, AuthManager):
         return server_config_or_auth, auth_manager_or_config
     
     # If we get here, at least one of the parameters is not of the expected type
@@ -175,7 +186,9 @@ def _get_auth_and_config(
     elif hasattr(server_config_or_auth, "instance_url"):
         server_config = server_config_or_auth
     else:
-        raise ValueError("Cannot find instance_url attribute in either auth_manager or server_config")
+        raise ValueError(
+            "Cannot find instance_url attribute in either auth_manager or server_config"
+        )
     
     return auth_manager, server_config
 
@@ -429,7 +442,9 @@ def get_workflow_activities(
             "sysparm_orderby": "order",
         }
         
-        activities_response = requests.get(activities_url, headers=headers, params=activities_params)
+        activities_response = requests.get(
+            activities_url, headers=headers, params=activities_params
+        )
         activities_response.raise_for_status()
         
         activities_result = activities_response.json()

@@ -52,10 +52,10 @@ from servicenow_mcp.tools.knowledge_base import (
     create_knowledge_base,
     get_article,
     list_articles,
+    list_categories,
     list_knowledge_bases,
     publish_article,
     update_article,
-    list_categories,
 )
 from servicenow_mcp.tools.script_include_tools import (
     create_script_include,
@@ -64,16 +64,19 @@ from servicenow_mcp.tools.script_include_tools import (
     list_script_includes,
     update_script_include,
 )
+from servicenow_mcp.tools.table_records_tools import get_record, get_records
+from servicenow_mcp.tools.table_schema_tools import get_table_schema, list_table_schemas
+from servicenow_mcp.tools.table_tools import list_tables
 from servicenow_mcp.tools.user_tools import (
-    create_user,
-    update_user,
-    get_user,
-    list_users,
-    create_group,
-    update_group,
     add_group_members,
-    remove_group_members,
+    create_group,
+    create_user,
+    get_user,
     list_groups,
+    list_users,
+    remove_group_members,
+    update_group,
+    update_user,
 )
 from servicenow_mcp.tools.workflow_tools import (
     activate_workflow,
@@ -89,10 +92,6 @@ from servicenow_mcp.tools.workflow_tools import (
     update_workflow,
     update_workflow_activity,
 )
-
-from servicenow_mcp.tools.table_tools import list_tables
-from servicenow_mcp.tools.table_records_tools import get_records, get_record
-from servicenow_mcp.tools.table_schema_tools import get_table_schema, list_table_schemas
 
 # from servicenow_mcp.tools.problem_tools import create_problem, update_problem
 # from servicenow_mcp.tools.request_tools import create_request, update_request

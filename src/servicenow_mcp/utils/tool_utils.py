@@ -1,7 +1,7 @@
 import re
-import re
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type
+
 import requests
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
 # Import all necessary tool implementation functions and params models
 # (This list needs to be kept complete and up-to-date)
@@ -179,6 +179,20 @@ from servicenow_mcp.tools.knowledge_base import (
 from servicenow_mcp.tools.knowledge_base import (
     update_article as update_article_tool,
 )
+from servicenow_mcp.tools.natural_language_tools import (
+    NaturalLanguageSearchParams,
+    NaturalLanguageUpdateParams,
+    UpdateScriptParams,
+)
+from servicenow_mcp.tools.natural_language_tools import (
+    natural_language_search as natural_language_search_tool,
+)
+from servicenow_mcp.tools.natural_language_tools import (
+    natural_language_update as natural_language_update_tool,
+)
+from servicenow_mcp.tools.natural_language_tools import (
+    update_script as update_script_tool,
+)
 from servicenow_mcp.tools.script_include_tools import (
     CreateScriptIncludeParams,
     DeleteScriptIncludeParams,
@@ -201,6 +215,33 @@ from servicenow_mcp.tools.script_include_tools import (
 )
 from servicenow_mcp.tools.script_include_tools import (
     update_script_include as update_script_include_tool,
+)
+from servicenow_mcp.tools.table_records_tools import (
+    GetRecordParams,
+    GetRecordsParams,
+)
+from servicenow_mcp.tools.table_records_tools import (
+    get_record as get_record_tool,
+)
+from servicenow_mcp.tools.table_records_tools import (
+    get_records as get_records_tool,
+)
+from servicenow_mcp.tools.table_schema_tools import (
+    GetTableSchemaParams,
+)
+from servicenow_mcp.tools.table_schema_tools import (
+    get_table_schema as get_table_schema_tool,
+)
+from servicenow_mcp.tools.table_schema_tools import (
+    list_table_schemas as list_table_schemas_tool,
+)
+
+# Table Tools
+from servicenow_mcp.tools.table_tools import (
+    ListTablesParams,
+)
+from servicenow_mcp.tools.table_tools import (
+    list_tables as list_tables_tool,
 )
 from servicenow_mcp.tools.user_tools import (
     AddGroupMembersParams,
@@ -289,34 +330,6 @@ from servicenow_mcp.tools.workflow_tools import (
 )
 from servicenow_mcp.tools.workflow_tools import (
     update_workflow_activity as update_workflow_activity_tool,
-)
-
-# Table Tools
-from servicenow_mcp.tools.table_tools import (
-    ListTablesParams,
-    list_tables as list_tables_tool,
-)
-
-from servicenow_mcp.tools.table_records_tools import (
-    GetRecordsParams,
-    GetRecordParams,
-    get_records as get_records_tool,
-    get_record as get_record_tool,
-)
-
-from servicenow_mcp.tools.table_schema_tools import (
-    GetTableSchemaParams,
-    get_table_schema as get_table_schema_tool,
-    list_table_schemas as list_table_schemas_tool,
-)
-
-from servicenow_mcp.tools.natural_language_tools import (
-    NaturalLanguageSearchParams,
-    NaturalLanguageUpdateParams,
-    UpdateScriptParams,
-    natural_language_search as natural_language_search_tool,
-    natural_language_update as natural_language_update_tool,
-    update_script as update_script_tool,
 )
 
 # Define a type alias for the Pydantic models or dataclasses used for params

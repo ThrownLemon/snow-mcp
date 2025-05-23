@@ -5,10 +5,10 @@ This module provides tools for working with records in ServiceNow tables.
 """
 
 import logging
-from typing import List, Optional, Dict, Any, Union
+from typing import Any, Dict, List, Optional
 
 import requests
-from pydantic import BaseModel, Field, validator, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from servicenow_mcp.auth.auth_manager import AuthManager
 from servicenow_mcp.utils.config import ServerConfig
@@ -22,8 +22,11 @@ class GetRecordsParams(BaseModel):
     table_name: str = Field(..., description="Name of the table to query")
     query: Optional[str] = Field(None, description="Encoded query string for filtering records")
     fields: Optional[List[str]] = Field(
-        None, 
-        description="List of fields to include in the results. If not provided, all fields will be returned."
+        None,
+        description=(
+            "List of fields to include in the results. If not provided, all fields will be "
+            "returned."
+        ),
     )
     limit: int = Field(10, description="Maximum number of records to return", ge=1, le=1000)
     offset: int = Field(0, description="Offset for pagination", ge=0)
@@ -44,8 +47,11 @@ class GetRecordParams(BaseModel):
     table_name: str = Field(..., description="Name of the table containing the record")
     sys_id: str = Field(..., description="System ID of the record to retrieve")
     fields: Optional[List[str]] = Field(
-        None, 
-        description="List of fields to include in the results. If not provided, all fields will be returned."
+        None,
+        description=(
+            "List of fields to include in the results. If not provided, all fields will be "
+            "returned."
+        ),
     )
 
 
@@ -180,7 +186,10 @@ def get_record(
         if not result:
             return {
                 "success": False,
-                "message": f"Record with sys_id '{params.sys_id}' not found in table '{params.table_name}'",
+                "message": (
+                    f"Record with sys_id '{params.sys_id}' not found in table "
+                    f"'{params.table_name}'"
+                ),
                 "error": "Record not found"
             }
             
@@ -191,7 +200,10 @@ def get_record(
     except requests.exceptions.HTTPError as http_err:
         error_msg = f"HTTP error occurred: {http_err}"
         if hasattr(http_err, 'response') and http_err.response.status_code == 404:
-            error_msg = f"Record with sys_id '{params.sys_id}' not found in table '{params.table_name}'"
+            error_msg = (
+                f"Record with sys_id '{params.sys_id}' not found in table "
+                f"'{params.table_name}'"
+            )
         logger.error(error_msg)
         return {
             "success": False,

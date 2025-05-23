@@ -24,7 +24,9 @@ class CreateChangeRequestParams(BaseModel):
     """Parameters for creating a change request."""
 
     short_description: str = Field(..., description="Short description of the change request")
-    description: Optional[str] = Field(None, description="Detailed description of the change request")
+    description: Optional[str] = Field(
+        None, description="Detailed description of the change request"
+    )
     type: str = Field(..., description="Type of change (normal, standard, emergency)")
     risk: Optional[str] = Field(None, description="Risk level of the change")
     impact: Optional[str] = Field(None, description="Impact of the change")
@@ -39,8 +41,12 @@ class UpdateChangeRequestParams(BaseModel):
     """Parameters for updating a change request."""
 
     change_id: str = Field(..., description="Change request ID or sys_id")
-    short_description: Optional[str] = Field(None, description="Short description of the change request")
-    description: Optional[str] = Field(None, description="Detailed description of the change request")
+    short_description: Optional[str] = Field(
+        None, description="Short description of the change request"
+    )
+    description: Optional[str] = Field(
+        None, description="Detailed description of the change request"
+    )
     state: Optional[str] = Field(None, description="State of the change request")
     risk: Optional[str] = Field(None, description="Risk level of the change")
     impact: Optional[str] = Field(None, description="Impact of the change")
@@ -60,7 +66,9 @@ class ListChangeRequestsParams(BaseModel):
     type: Optional[str] = Field(None, description="Filter by type (normal, standard, emergency)")
     category: Optional[str] = Field(None, description="Filter by category")
     assignment_group: Optional[str] = Field(None, description="Filter by assignment group")
-    timeframe: Optional[str] = Field(None, description="Filter by timeframe (upcoming, in-progress, completed)")
+    timeframe: Optional[str] = Field(
+        None, description="Filter by timeframe (upcoming, in-progress, completed)"
+    )
     query: Optional[str] = Field(None, description="Additional query string")
 
 
@@ -77,8 +85,12 @@ class AddChangeTaskParams(BaseModel):
     short_description: str = Field(..., description="Short description of the task")
     description: Optional[str] = Field(None, description="Detailed description of the task")
     assigned_to: Optional[str] = Field(None, description="User assigned to the task")
-    planned_start_date: Optional[str] = Field(None, description="Planned start date (YYYY-MM-DD HH:MM:SS)")
-    planned_end_date: Optional[str] = Field(None, description="Planned end date (YYYY-MM-DD HH:MM:SS)")
+    planned_start_date: Optional[str] = Field(
+        None, description="Planned start date (YYYY-MM-DD HH:MM:SS)"
+    )
+    planned_end_date: Optional[str] = Field(
+        None, description="Planned end date (YYYY-MM-DD HH:MM:SS)"
+    )
 
 
 class SubmitChangeForApprovalParams(BaseModel):
@@ -104,7 +116,9 @@ class RejectChangeParams(BaseModel):
     rejection_reason: str = Field(..., description="Reason for rejection")
 
 
-def _unwrap_and_validate_params(params: Any, model_class: Type[T], required_fields: List[str] = None) -> Dict[str, Any]:
+def _unwrap_and_validate_params(
+    params: Any, model_class: Type[T], required_fields: List[str] = None
+) -> Dict[str, Any]:
     """
     Helper function to unwrap and validate parameters.
     
@@ -114,10 +128,12 @@ def _unwrap_and_validate_params(params: Any, model_class: Type[T], required_fiel
         required_fields: List of required field names.
         
     Returns:
-        A tuple of (success, result) where result is either the validated parameters or an error message.
+        A tuple of (success, result) where result is either the validated parameters or an error
+        message.
     """
     # Handle case where params might be wrapped in another dictionary
-    if isinstance(params, dict) and len(params) == 1 and "params" in params and isinstance(params["params"], dict):
+    if isinstance(params, dict) and len(params) == 1 and \
+       "params" in params and isinstance(params["params"], dict):
         logger.warning("Detected params wrapped in a 'params' key. Unwrapping...")
         params = params["params"]
     
@@ -131,7 +147,10 @@ def _unwrap_and_validate_params(params: Any, model_class: Type[T], required_fiel
             logger.error(f"Failed to convert params to dictionary: {e}")
             return {
                 "success": False,
-                "message": f"Invalid parameters format. Expected a dictionary, got {type(params).__name__}",
+                "message": (
+                    f"Invalid parameters format. Expected a dictionary, "
+                    f"got {type(params).__name__}"
+                ),
             }
     
     # Validate required parameters are present
@@ -832,7 +851,9 @@ def approve_change(
         if validated_params.approval_comments:
             approval_data["comments"] = validated_params.approval_comments
         
-        approval_update_response = requests.patch(approval_update_url, json=approval_data, headers=headers)
+        approval_update_response = requests.patch(
+            approval_update_url, json=approval_data, headers=headers
+        )
         approval_update_response.raise_for_status()
         
         # Finally, update the change request state to "implement"
@@ -932,7 +953,9 @@ def reject_change(
             "comments": validated_params.rejection_reason,
         }
         
-        approval_update_response = requests.patch(approval_update_url, json=approval_data, headers=headers)
+        approval_update_response = requests.patch(
+            approval_update_url, json=approval_data, headers=headers
+        )
         approval_update_response.raise_for_status()
         
         # Finally, update the change request state to "canceled"

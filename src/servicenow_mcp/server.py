@@ -63,7 +63,8 @@ def serialize_tool_output(result: Any, tool_name: str) -> str:
         else:
             # Absolute fallback: convert to string
             logger.warning(
-                f"Could not serialize result for tool '{tool_name}' to JSON, falling back to str(). Type: {type(result)}"
+                f"Could not serialize result for tool '{tool_name}' to JSON, "
+                f"falling back to str(). Type: {type(result)}"
             )
             return str(result)
     except Exception as e:
@@ -133,7 +134,8 @@ class ServiceNowMCP:
                     logger.info(f"Successfully loaded tool package config from {config_path}")
                 else:
                     logger.error(
-                        f"Invalid format in {config_path}: Expected a dictionary, got {type(loaded_config)}. No packages loaded."
+                        f"Invalid format in {config_path}: Expected a dictionary, "
+                        f"got {type(loaded_config)}. No packages loaded."
                     )
                     self.package_definitions = {}
         except FileNotFoundError:
@@ -173,7 +175,8 @@ class ServiceNowMCP:
             self.enabled_tool_names = []
 
         logger.info(
-            f"Loading package '{self.current_package_name}' with {len(self.enabled_tool_names)} tools."
+            f"Loading package '{self.current_package_name}' "
+            f"with {len(self.enabled_tool_names)} tools."
         )
 
     async def _list_tools_impl(self) -> List[types.Tool]:
@@ -213,11 +216,13 @@ class ServiceNowMCP:
                     elif hasattr(params_model, 'schema'):
                         schema = params_model.schema()
                     # For dict type (like in list_table_schemas), create a simple schema
-                    elif params_model == dict:
+                    elif params_model is dict:
                         schema = {"type": "object", "properties": {}}
                     else:
                         schema = {"type": "object", "properties": {}}
-                        logger.warning(f"Could not determine schema for tool '{tool_name}'. Using empty schema.")
+                        logger.warning(
+                            f"Could not determine schema for tool '{tool_name}'. Using empty schema."
+                        )
                     
                     tool_list.append(
                         types.Tool(name=tool_name, description=description, inputSchema=schema)
@@ -264,7 +269,8 @@ class ServiceNowMCP:
             raise ValueError(f"Unknown tool: {name}")
         if name not in self.enabled_tool_names:
             raise ValueError(
-                f"Tool '{name}' is not enabled in the current package '{self.current_package_name}'."
+                f"Tool '{name}' is not enabled in the current package "
+                f"'{self.current_package_name}'."
             )
 
         # Get tool definition (we don't need the serialization hint anymore)
@@ -282,7 +288,7 @@ class ServiceNowMCP:
             logger.error(
                 f"Unexpected error parsing arguments for tool '{name}': {e}", exc_info=True
             )
-            raise ValueError(f"Failed to parse arguments for tool '{name}': {e}")
+            raise ValueError(f"Failed to parse arguments for tool '{name}': {e}") from e
 
         # Execute the tool implementation function
         try:
@@ -323,7 +329,8 @@ class ServiceNowMCP:
             The configured mcp.server.lowlevel.Server instance.
         """
         logger.info(
-            "ServiceNowMCP instance configured. Returning low-level server instance for external execution."
+            "ServiceNowMCP instance configured. "
+            "Returning low-level server instance for external execution."
         )
         # The actual running of the server (server.run(...)) must happen
         # within an async context managed by the caller (e.g., using anyio

@@ -70,7 +70,10 @@ class ListUsersParams(BaseModel):
     department: Optional[str] = Field(None, description="Filter by department")
     query: Optional[str] = Field(
         None,
-        description="Case-insensitive search term that matches against name, username, or email fields. Uses ServiceNow's LIKE operator for partial matching.",
+        description=(
+            "Case-insensitive search term that matches against name, username, or email fields. "
+            "Uses ServiceNow's LIKE operator for partial matching."
+        ),
     )
 
 
@@ -128,7 +131,10 @@ class ListGroupsParams(BaseModel):
     active: Optional[bool] = Field(None, description="Filter by active status")
     query: Optional[str] = Field(
         None,
-        description="Case-insensitive search term that matches against group name or description fields. Uses ServiceNow's LIKE operator for partial matching.",
+        description=(
+            "Case-insensitive search term that matches against group name or description fields. "
+            "Uses ServiceNow's LIKE operator for partial matching."
+        ),
     )
     type: Optional[str] = Field(None, description="Filter by group type")
 

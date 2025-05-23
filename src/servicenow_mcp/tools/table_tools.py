@@ -5,7 +5,7 @@ This module provides tools for working with ServiceNow tables.
 """
 
 import logging
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
 
 import requests
 from pydantic import BaseModel, Field
@@ -72,12 +72,17 @@ def list_tables(
         query_params = {
             "sysparm_limit": params.limit,
             "sysparm_offset": params.offset,
-            "sysparm_fields": "name,label,description,is_extendable,is_view,sys_created_on,sys_updated_on"
+            "sysparm_fields": (
+                "name,label,description,is_extendable,is_view,sys_created_on,"
+                "sys_updated_on"
+            ),
         }
         
         # Add name filter if provided
         if params.name_filter:
-            query_params["sysparm_query"] = f"nameLIKE{params.name_filter}^ORlabelLIKE{params.name_filter}"
+            query_params["sysparm_query"] = (
+                f"nameLIKE{params.name_filter}^ORlabelLIKE{params.name_filter}"
+            )
         
         # Add system tables filter
         if not params.include_sys:

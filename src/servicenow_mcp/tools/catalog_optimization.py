@@ -88,7 +88,9 @@ def get_optimization_recommendations(
                         "items": items,
                         "impact": "medium",
                         "effort": "medium",
-                        "action": "Consider promoting these items or removing them if no longer needed",
+                        "action": (
+                            "Consider promoting these items or removing them if no longer needed"
+                        ),
                     })
             
             elif rec_type == "high_abandonment":
@@ -127,7 +129,10 @@ def get_optimization_recommendations(
                         "items": items,
                         "impact": "medium",
                         "effort": "low",
-                        "action": "Improve the descriptions to better explain the item's purpose and benefits",
+                        "action": (
+                            "Improve the descriptions to better explain the item's purpose and "
+                            "benefits"
+                        ),
                     })
         
         return {

@@ -6,7 +6,7 @@ This module provides tools for interacting with ServiceNow using natural languag
 
 import logging
 import re
-from typing import Dict, Any, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import requests
 from pydantic import BaseModel, Field, field_validator
@@ -19,7 +19,9 @@ logger = logging.getLogger(__name__)
 class NaturalLanguageSearchParams(BaseModel):
     """Parameters for natural language search."""
     
-    query: str = Field(..., description="Natural language search query (e.g., 'find all incidents about SAP')")
+    query: str = Field(
+        ..., description="Natural language search query (e.g., 'find all incidents about SAP')"
+    )
     table: str = Field("incident", description="Table to search in (default: incident)")
     limit: int = Field(10, description="Maximum number of results to return", ge=1, le=100)
     
@@ -33,7 +35,13 @@ class NaturalLanguageSearchParams(BaseModel):
 class NaturalLanguageUpdateParams(BaseModel):
     """Parameters for natural language update."""
     
-    query: str = Field(..., description="Natural language update instruction (e.g., 'Update incident INC0010001 saying I'm working on it')")
+    query: str = Field(
+        ...,
+        description=(
+            "Natural language update instruction (e.g., 'Update incident INC0010001 "
+            "saying I'm working on it')"
+        ),
+    )
     
     @field_validator('query')
     def validate_query(cls, v):
@@ -46,7 +54,9 @@ class UpdateScriptParams(BaseModel):
     """Parameters for updating a script."""
     
     script_id: str = Field(..., description="ID or name of the script to update")
-    script_type: str = Field(..., description="Type of script (e.g., 'business_rule', 'script_include', 'ui_action')")
+    script_type: str = Field(
+        ..., description="Type of script (e.g., 'business_rule', 'script_include', 'ui_action')"
+    )
     script: str = Field(..., description="The script content")
     description: Optional[str] = Field(None, description="Description of the script")
     active: bool = Field(True, description="Whether the script should be active")
@@ -57,7 +67,9 @@ class NaturalLanguageResponse(BaseModel):
     
     success: bool = Field(..., description="Whether the operation was successful")
     message: str = Field(..., description="Message describing the result")
-    results: List[Dict[str, Any]] = Field(default_factory=list, description="List of matching records")
+    results: List[Dict[str, Any]] = Field(
+        default_factory=list, description="List of matching records"
+    )
     query_used: Optional[str] = Field(None, description="The actual query used for the search")
 
 
@@ -164,7 +176,10 @@ def natural_language_update(
         if not match:
             return {
                 "success": False,
-                "message": "Could not parse update command. Format: 'Update [table] [record_id] [changes]'",
+                "message": (
+                    "Could not parse update command. Format: 'Update [table] [record_id] "
+                    "[changes]'"
+                ),
                 "updated": False
             }
             

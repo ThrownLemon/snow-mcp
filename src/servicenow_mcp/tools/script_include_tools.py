@@ -39,7 +39,9 @@ class CreateScriptIncludeParams(BaseModel):
     script: str = Field(..., description="Script content")
     description: Optional[str] = Field(None, description="Description of the script include")
     api_name: Optional[str] = Field(None, description="API name of the script include")
-    client_callable: bool = Field(False, description="Whether the script include is client callable")
+    client_callable: bool = Field(
+        False, description="Whether the script include is client callable"
+    )
     active: bool = Field(True, description="Whether the script include is active")
     access: str = Field("package_private", description="Access level of the script include")
 
@@ -51,7 +53,9 @@ class UpdateScriptIncludeParams(BaseModel):
     script: Optional[str] = Field(None, description="Script content")
     description: Optional[str] = Field(None, description="Description of the script include")
     api_name: Optional[str] = Field(None, description="API name of the script include")
-    client_callable: Optional[bool] = Field(None, description="Whether the script include is client callable")
+    client_callable: Optional[bool] = Field(
+        None, description="Whether the script include is client callable"
+    )
     active: Optional[bool] = Field(None, description="Whether the script include is active")
     access: Optional[str] = Field(None, description="Access level of the script include")
 
@@ -68,7 +72,9 @@ class ScriptIncludeResponse(BaseModel):
     success: bool = Field(..., description="Whether the operation was successful")
     message: str = Field(..., description="Message describing the result")
     script_include_id: Optional[str] = Field(None, description="ID of the affected script include")
-    script_include_name: Optional[str] = Field(None, description="Name of the affected script include")
+    script_include_name: Optional[str] = Field(
+        None, description="Name of the affected script include"
+    )
 
 
 def list_script_includes(
@@ -96,7 +102,10 @@ def list_script_includes(
             "sysparm_offset": params.offset,
             "sysparm_display_value": "true",
             "sysparm_exclude_reference_link": "true",
-            "sysparm_fields": "sys_id,name,script,description,api_name,client_callable,active,access,sys_created_on,sys_updated_on,sys_created_by,sys_updated_by"
+            "sysparm_fields": (
+                "sys_id,name,script,description,api_name,client_callable,active,access,"
+                "sys_created_on,sys_updated_on,sys_created_by,sys_updated_by"
+            ),
         }
         
         # Add filters if provided

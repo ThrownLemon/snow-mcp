@@ -5,7 +5,7 @@ This module provides tools for working with ServiceNow table schemas.
 """
 
 import logging
-from typing import Dict, Any, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import requests
 from pydantic import BaseModel, Field, field_validator
@@ -34,7 +34,9 @@ class FieldType(BaseModel):
                 value=v.get('value', ''),
                 link=v.get('link')
             )
-        raise ValueError("Field type must be a string or a dictionary with 'value' and optional 'link'")
+        raise ValueError(
+            "Field type must be a string or a dictionary with 'value' and optional 'link'"
+        )
     
     def __str__(self):
         return self.value
@@ -76,14 +78,18 @@ class TableSchemaResponse(BaseModel):
     description: str = Field("", description="Description of the table")
     sys_created_on: Optional[str] = Field(None, description="Creation timestamp")
     sys_updated_on: Optional[str] = Field(None, description="Last update timestamp")
-    fields: Dict[str, FieldInfo] = Field(..., description="Dictionary of field information keyed by field name")
+    fields: Dict[str, FieldInfo] = Field(
+        ..., description="Dictionary of field information keyed by field name"
+    )
 
 
 class GetTableSchemaParams(BaseModel):
     """Parameters for getting a table schema."""
     
     table_name: str = Field(..., description="Name of the table to get the schema for")
-    include_all_fields: bool = Field(False, description="Include all fields, including system and read-only fields")
+    include_all_fields: bool = Field(
+        False, description="Include all fields, including system and read-only fields"
+    )
     
 
 class TableSchemaListResponse(BaseModel):
@@ -141,7 +147,10 @@ def get_table_schema(
         # Build the query to get all fields for the table
         schema_params = {
             "sysparm_query": f"name={params.table_name}",
-            "sysparm_fields": "element,column_label,internal_type,max_length,reference,mandatory,read_only,default_value,choices,description"
+            "sysparm_fields": (
+                "element,column_label,internal_type,max_length,reference,mandatory,"
+                "read_only,default_value,choices,description"
+            ),
         }
         
         # Add filter for non-system fields if needed

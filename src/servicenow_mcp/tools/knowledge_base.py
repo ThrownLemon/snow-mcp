@@ -23,8 +23,12 @@ class CreateKnowledgeBaseParams(BaseModel):
     description: Optional[str] = Field(None, description="Description of the knowledge base")
     owner: Optional[str] = Field(None, description="The specified admin user or group")
     managers: Optional[str] = Field(None, description="Users who can manage this knowledge base")
-    publish_workflow: Optional[str] = Field("Knowledge - Instant Publish", description="Publication workflow")
-    retire_workflow: Optional[str] = Field("Knowledge - Instant Retire", description="Retirement workflow")
+    publish_workflow: Optional[str] = Field(
+        "Knowledge - Instant Publish", description="Publication workflow"
+    )
+    retire_workflow: Optional[str] = Field(
+        "Knowledge - Instant Retire", description="Retirement workflow"
+    )
 
 
 class ListKnowledgeBasesParams(BaseModel):
@@ -42,7 +46,9 @@ class CreateCategoryParams(BaseModel):
     title: str = Field(..., description="Title of the category")
     description: Optional[str] = Field(None, description="Description of the category")
     knowledge_base: str = Field(..., description="The knowledge base to create the category in")
-    parent_category: Optional[str] = Field(None, description="Parent category (if creating a subcategory)")
+    parent_category: Optional[str] = Field(
+        None, description="Parent category (if creating a subcategory)"
+    )
     active: bool = Field(True, description="Whether the category is active")
 
 
@@ -630,7 +636,7 @@ def list_articles(
             logger.error("Unexpected response format: %s", json_response)
             return {
                 "success": False,
-                "message": f"Unexpected response format",
+                "message": "Unexpected response format",
                 "articles": [],
                 "count": 0,
                 "limit": params.limit,

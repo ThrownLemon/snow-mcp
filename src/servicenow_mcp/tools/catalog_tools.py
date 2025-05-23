@@ -324,10 +324,14 @@ def get_catalog_item_variables(
         return formatted_variables
     
     except requests.exceptions.RequestException as e:
-        logger.error(f"Error getting catalog item variables for item {item_id}: {str(e)}")
+        logger.error(
+            f"Error getting catalog item variables for item {item_id}: {str(e)}"
+        )
         return []
     except Exception as e:
-        logger.error(f"Unexpected error getting catalog item variables for item {item_id}: {str(e)}")
+        logger.error(
+            f"Unexpected error getting catalog item variables for item {item_id}: {str(e)}"
+        )
         return []
 
 
@@ -674,7 +678,10 @@ def move_catalog_items(
         if success_count == len(params.item_ids):
             return CatalogResponse(
                 success=True,
-                message=f"Successfully moved {success_count} catalog items to category '{target_category_name}'",
+                message=(
+                    f"Successfully moved {success_count} catalog items to category "
+                    f"'{target_category_name}'"
+                ),
                 data={
                     "moved_items_count": success_count,
                     "target_category_id": target_category_id,
@@ -684,7 +691,10 @@ def move_catalog_items(
         elif success_count > 0:
             return CatalogResponse(
                 success=True,
-                message=f"Partially moved catalog items. {success_count} succeeded, {len(failed_items)} failed.",
+                message=(
+                    f"Partially moved catalog items. {success_count} succeeded, "
+                    f"{len(failed_items)} failed."
+                ),
                 data={
                     "moved_items_count": success_count,
                     "target_category_id": target_category_id,
@@ -705,11 +715,4 @@ def move_catalog_items(
             success=False,
             message=f"Error moving catalog items: {str(e)}",
             data=None,
-        ) 
-    except Exception as e:
-        logger.error(f"Error moving catalog items: {str(e)}")
-        return CatalogResponse(
-            success=False,
-            message=f"Error moving catalog items: {str(e)}",
-            data=None,
-        ) 
+        )
