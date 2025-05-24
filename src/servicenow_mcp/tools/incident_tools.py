@@ -18,6 +18,59 @@ from servicenow_mcp.utils.config import ServerConfig
 logger = logging.getLogger(__name__)
 
 
+def _find_incident_sys_id(config: ServerConfig, auth_manager: AuthManager, incident_id: str) -> dict:
+    """
+    Helper function to find an incident's sys_id by incident number.
+    
+    Args:
+        config: Server configuration.
+        auth_manager: Authentication manager.
+        incident_id: Incident ID or sys_id.
+        
+    Returns:
+        Dictionary with sys_id if found, or error information.
+    """
+    # Check if incident_id is already a sys_id (alphanumeric, typically 32 chars)
+    if incident_id and (incident_id.upper().startswith('INC') or not all(c in "0123456789abcdef" for c in incident_id)):  # It's an incident number like INC0010001 or inc123
+        try:
+            # Query to find the sys_id by incident number
+            response = requests.get(
+                f"{config.api_url}/table/incident",
+                params={
+                    "sysparm_query": f"number={incident_id}",
+                    "sysparm_limit": "1",
+                },
+                headers=auth_manager.get_headers(),
+                timeout=config.timeout,
+            )
+            response.raise_for_status()
+            
+            result = response.json().get("result", [])
+            if not result:
+                return {
+                    "success": False,
+                    "message": f"Incident not found: {incident_id}",
+                }
+                
+            return {
+                "success": True,
+                "sys_id": result[0].get("sys_id"),
+            }
+            
+        except requests.RequestException as e:
+            logger.error(f"Failed to find incident: {e}")
+            return {
+                "success": False,
+                "message": f"Failed to find incident: {str(e)}",
+            }
+    
+    # If it's not an incident number, assume it's already a sys_id
+    return {
+        "success": True,
+        "sys_id": incident_id,
+    }
+
+
 class CreateIncidentParams(BaseModel):
     """Parameters for creating an incident."""
 

@@ -4,13 +4,9 @@ Test script for workflow_tools module.
 This script directly tests the workflow_tools functions with proper authentication.
 """
 
-import os
-import json
+import pytest
 import logging
-from dotenv import load_dotenv
 
-from servicenow_mcp.auth.auth_manager import AuthManager
-from servicenow_mcp.utils.config import ServerConfig, AuthConfig, AuthType, BasicAuthConfig
 from servicenow_mcp.tools.workflow_tools import (
     list_workflows,
     get_workflow_details,
@@ -19,97 +15,83 @@ from servicenow_mcp.tools.workflow_tools import (
 )
 
 # Set up logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Load environment variables
-load_dotenv()
-
-def setup_auth_and_config():
-    """Set up authentication and server configuration."""
-    instance_url = os.getenv("SERVICENOW_INSTANCE_URL")
-    username = os.getenv("SERVICENOW_USERNAME")
-    password = os.getenv("SERVICENOW_PASSWORD")
-    
-    if not all([instance_url, username, password]):
-        logger.error("Missing required environment variables. Please set SERVICENOW_INSTANCE_URL, SERVICENOW_USERNAME, and SERVICENOW_PASSWORD.")
-        exit(1)
-    
-    # Create authentication configuration
-    auth_config = AuthConfig(
-        type=AuthType.BASIC,
-        basic=BasicAuthConfig(username=username, password=password),
-    )
-    
-    # Create server configuration
-    server_config = ServerConfig(
-        instance_url=instance_url,
-        auth=auth_config,
-    )
-    
-    # Create authentication manager
-    auth_manager = AuthManager(auth_config)
-    
-    return auth_manager, server_config
-
-def print_result(name, result):
-    """Print the result of a function call."""
-    logger.info(f"=== Result of {name} ===")
-    if "error" in result:
-        logger.error(f"Error: {result['error']}")
-    else:
-        logger.info(json.dumps(result, indent=2))
-
 def test_list_workflows(auth_manager, server_config):
-    """Test the list_workflows function."""
-    logger.info("Testing list_workflows...")
+    """Test listing workflows."""
+    # Call the function
+    params = {
+        "limit": 10,
+        "active": True,
+    }
+    result = list_workflows(auth_manager, server_config, params)
     
-    # Test with default parameters
-    result = list_workflows(auth_manager, server_config, {})
-    print_result("list_workflows (default)", result)
-    
-    # Test with active=True
-    result = list_workflows(auth_manager, server_config, {"active": True})
-    print_result("list_workflows (active=True)", result)
-    
-    return result
+    # Assert that the result is as expected
+    assert "workflows" in result, "Expected 'workflows' in result"
+    assert "count" in result, "Expected 'count' in result"
+    assert "total" in result, "Expected 'total' in result"
+
 
 def test_get_workflow_details(auth_manager, server_config, workflow_id):
-    """Test the get_workflow_details function."""
-    logger.info(f"Testing get_workflow_details for workflow {workflow_id}...")
+    """Test getting workflow details."""
+    # Call the function
+    params = {
+        "workflow_id": workflow_id,
+    }
+    result = get_workflow_details(auth_manager, server_config, params)
     
-    result = get_workflow_details(auth_manager, server_config, {"workflow_id": workflow_id})
-    print_result("get_workflow_details", result)
-    
-    return result
+    # Assert that the result is as expected
+    assert "workflow" in result, "Expected 'workflow' in result"
+
 
 def test_list_workflow_versions(auth_manager, server_config, workflow_id):
-    """Test the list_workflow_versions function."""
-    logger.info(f"Testing list_workflow_versions for workflow {workflow_id}...")
+    """Test listing workflow versions."""
+    # Call the function
+    params = {
+        "workflow_id": workflow_id,
+    }
+    result = list_workflow_versions(auth_manager, server_config, params)
     
-    result = list_workflow_versions(auth_manager, server_config, {"workflow_id": workflow_id})
-    print_result("list_workflow_versions", result)
-    
-    return result
+    # Assert that the result is as expected
+    assert "versions" in result, "Expected 'versions' in result"
+
 
 def test_get_workflow_activities(auth_manager, server_config, workflow_id):
-    """Test the get_workflow_activities function."""
-    logger.info(f"Testing get_workflow_activities for workflow {workflow_id}...")
+    """Test getting workflow activities."""
+    # First, get the workflow versions
+    versions_params = {
+        "workflow_id": workflow_id,
+    }
+    versions_result = list_workflow_versions(auth_manager, server_config, versions_params)
     
-    result = get_workflow_activities(auth_manager, server_config, {"workflow_id": workflow_id})
-    print_result("get_workflow_activities", result)
-    
-    return result
+    if "versions" in versions_result and versions_result["versions"]:
+        version_id = versions_result["versions"][0]["sys_id"]
+        
+        # Call the function with the correct parameter
+        params = {
+            "version_id": version_id,
+            "workflow_id": workflow_id  # Adding the required workflow_id parameter
+        }
+        result = get_workflow_activities(auth_manager, server_config, params)
+        
+        # Assert that the result is as expected
+        assert "activities" in result, "Expected 'activities' in result"
+    else:
+        pytest.skip("No workflow versions found. Skipping test_get_workflow_activities.")
+
 
 def test_with_swapped_params(auth_manager, server_config):
-    """Test functions with swapped parameters to verify our fix works."""
-    logger.info("Testing with swapped parameters...")
+    """Test with invalid parameters."""
+    # Call the function with an invalid parameter
+    params = {
+        "limit": "invalid",  # Should be an integer, not a string
+        "active": True,
+    }
+    result = list_workflows(auth_manager, server_config, params)
     
-    # Test list_workflows with swapped parameters
-    result = list_workflows(server_config, auth_manager, {})
-    print_result("list_workflows (swapped params)", result)
-    
-    return result
+    # Assert that the result contains an error
+    assert "error" in result, "Expected 'error' in result with invalid parameters"
 
 if __name__ == "__main__":
     logger.info("Testing workflow_tools module...")

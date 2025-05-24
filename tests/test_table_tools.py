@@ -15,6 +15,7 @@ from servicenow_mcp.tools.table_records_tools import (
     get_records,
     get_record,
     GetRecordsParams,
+    GetRecordParams,
     RecordsResponse,
     RecordResponse
 )
@@ -26,6 +27,7 @@ from servicenow_mcp.tools.table_schema_tools import (
     TableSchemaListResponse
 )
 from servicenow_mcp.utils.config import ServerConfig
+import requests # Added for using requests.exceptions
 
 
 class MockResponse:
@@ -61,7 +63,7 @@ class TestTableTools(unittest.TestCase):
             timeout=30
         )
         self.auth_manager = MagicMock()
-        self.auth_manager.get_auth_headers.return_value = {"Authorization": "Bearer test_token"}
+        self.auth_manager.get_headers.return_value = {"Authorization": "Bearer test_token"} # Changed get_auth_headers to get_headers
     
     @patch('requests.get')
     def test_list_tables_success(self, mock_get):
@@ -143,37 +145,46 @@ class TestTableTools(unittest.TestCase):
         self.assertEqual(params.get("sysparm_query"), "active=true")
         self.assertEqual(params.get("sysparm_fields"), "number,short_description")
     
-    @patch('requests.get')
+    @patch('servicenow_mcp.tools.table_records_tools.requests.get') # Patched correct module
     def test_get_record_success(self, mock_get):
         """Test successful single record retrieval."""
-        # Mock response
-        mock_response = {
-            "result": {
-                "sys_id": "123",
-                "number": "INC0010001",
-                "short_description": "Test incident"
-            }
+        # Mock response for requests.get inside the tool
+        mock_api_response_data = {
+            "sys_id": "123",
+            "number": "INC0010001",
+            "short_description": "Test incident"
         }
-        mock_get.return_value = MockResponse(mock_response)
-        
-        # Call the function
-        response = get_record(
-            config=self.config,
-            auth_manager=self.auth_manager,
+        # get_record expects response.json().get("result", {})
+        mock_get.return_value = MockResponse({"result": mock_api_response_data})
+    
+        # Call the function with GetRecordParams
+        params = GetRecordParams(
             table_name="incident",
             sys_id="123",
             fields=["number", "short_description"]
         )
-        
+        response = get_record(
+            config=self.config,
+            auth_manager=self.auth_manager,
+            params=params
+        )
+    
         # Assertions
         self.assertTrue(response["success"])
+        self.assertEqual(response["record"]["sys_id"], "123")
         self.assertEqual(response["record"]["number"], "INC0010001")
+        self.assertEqual(response["record"]["short_description"], "Test incident")
         
         # Verify the request was made correctly
-        mock_get.assert_called_once()
-        args, kwargs = mock_get.call_args
-        params = kwargs.get("params", {})
-        self.assertEqual(params.get("sysparm_fields"), "number,short_description")
+        expected_request_params = {}
+        if params.fields:
+            expected_request_params["sysparm_fields"] = ",".join(params.fields)
+        
+        mock_get.assert_called_once_with(
+            f"{self.config.instance_url}/api/now/table/incident/123",
+            headers=self.auth_manager.get_headers(), # Corrected to get_headers
+            params=expected_request_params
+        )
     
     @patch('requests.get')
     def test_get_table_schema_success(self, mock_get):

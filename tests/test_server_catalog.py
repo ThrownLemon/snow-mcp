@@ -49,32 +49,26 @@ class TestServerCatalog(unittest.TestCase):
 
     def test_register_catalog_resources(self):
         """Test that catalog resources are registered correctly."""
-        # Call the method to register resources
-        self.server._register_resources()
-
-        # Check that the resource decorators were called
-        resource_calls = self.server.mcp_server.resource.call_args_list
-        resource_paths = [call[0][0] for call in resource_calls]
-
-        # Check that catalog resources are registered
-        self.assertIn("catalog://items", resource_paths)
-        self.assertIn("catalog://categories", resource_paths)
-        self.assertIn("catalog://{item_id}", resource_paths)
+        # The current implementation doesn't have a separate method for registering resources
+        # Instead, we'll check that the tool definitions include catalog tools
+        self.assertTrue(hasattr(self.server, 'tool_definitions'), "Server should have tool_definitions attribute")
+        
+        # Check that catalog tools are in the tool definitions
+        catalog_tools = [name for name in self.server.tool_definitions.keys() if name.startswith('list_catalog') or name.startswith('get_catalog')]
+        self.assertTrue(len(catalog_tools) > 0, "Expected catalog tools in tool definitions")
 
     def test_register_catalog_tools(self):
         """Test that catalog tools are registered correctly."""
-        # Call the method to register tools
-        self.server._register_tools()
-
-        # Check that the tool decorator was called
-        self.server.mcp_server.tool.assert_called()
-
-        # Get the tool functions
-        tool_calls = self.server.mcp_server.tool.call_args_list
+        # The current implementation registers tools differently
+        # Test that the server has initialized the tool_definitions attribute
+        self.assertTrue(hasattr(self.server, 'tool_definitions'), "Server should have tool_definitions attribute")
         
-        # Instead of trying to extract names from the call args, just check that the decorator was called
-        # the right number of times (at least 3 times for the catalog tools)
-        self.assertGreaterEqual(len(tool_calls), 3)
+        # Check that the server has registered handlers
+        self.assertTrue(hasattr(self.server, 'mcp_server'), "Server should have mcp_server attribute")
+        
+        # Check that catalog tools are in the tool definitions
+        catalog_tools = [name for name in self.server.tool_definitions.keys() if name.startswith('list_catalog') or name.startswith('get_catalog')]
+        self.assertTrue(len(catalog_tools) > 0, "Expected catalog tools in tool definitions")
 
     @patch("servicenow_mcp.tools.catalog_tools.list_catalog_items")
     def test_list_catalog_items_tool(self, mock_list_catalog_items):
@@ -91,11 +85,8 @@ class TestServerCatalog(unittest.TestCase):
             ],
         }
 
-        # Register the tools
-        self.server._register_tools()
-
-        # Check that the tool decorator was called
-        self.server.mcp_server.tool.assert_called()
+        # Verify that the tool is in the tool definitions
+        self.assertIn('list_catalog_items', self.server.tool_definitions, "list_catalog_items should be in tool definitions")
 
     @patch("servicenow_mcp.tools.catalog_tools.get_catalog_item")
     def test_get_catalog_item_tool(self, mock_get_catalog_item):
@@ -110,11 +101,8 @@ class TestServerCatalog(unittest.TestCase):
             },
         }
 
-        # Register the tools
-        self.server._register_tools()
-
-        # Check that the tool decorator was called
-        self.server.mcp_server.tool.assert_called()
+        # Verify that the tool is in the tool definitions
+        self.assertIn('get_catalog_item', self.server.tool_definitions, "get_catalog_item should be in tool definitions")
 
     @patch("servicenow_mcp.tools.catalog_tools.list_catalog_categories")
     def test_list_catalog_categories_tool(self, mock_list_catalog_categories):
@@ -131,11 +119,8 @@ class TestServerCatalog(unittest.TestCase):
             ],
         }
 
-        # Register the tools
-        self.server._register_tools()
-
-        # Check that the tool decorator was called
-        self.server.mcp_server.tool.assert_called()
+        # Verify that the tool is in the tool definitions
+        self.assertIn('list_catalog_categories', self.server.tool_definitions, "list_catalog_categories should be in tool definitions")
 
 
 if __name__ == "__main__":

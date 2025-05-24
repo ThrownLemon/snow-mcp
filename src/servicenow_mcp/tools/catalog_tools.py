@@ -83,7 +83,7 @@ def list_catalog_items(
     config: ServerConfig,
     auth_manager: AuthManager,
     params: ListCatalogItemsParams,
-) -> Dict[str, Any]:
+) -> CatalogResponse:
     """
     List service catalog items from ServiceNow.
 
@@ -146,25 +146,29 @@ def list_catalog_items(
                 "order": item.get("order", ""),
             })
         
-        return {
-            "success": True,
-            "message": f"Retrieved {len(formatted_items)} catalog items",
-            "items": formatted_items,
-            "total": len(formatted_items),
-            "limit": params.limit,
-            "offset": params.offset,
-        }
+        return CatalogResponse(
+            success=True,
+            message=f"Retrieved {len(formatted_items)} catalog items",
+            data={
+                "items": formatted_items,
+                "total": len(formatted_items),
+                "limit": params.limit,
+                "offset": params.offset,
+            }
+        )
     
     except requests.exceptions.RequestException as e:
         logger.error(f"Error listing catalog items: {str(e)}")
-        return {
-            "success": False,
-            "message": f"Error listing catalog items: {str(e)}",
-            "items": [],
-            "total": 0,
-            "limit": params.limit,
-            "offset": params.offset,
-        }
+        return CatalogResponse(
+            success=False,
+            message=f"Failed to list catalog items: {str(e)}",
+            data={
+                "items": [],
+                "total": 0,
+                "limit": params.limit,
+                "offset": params.offset,
+            }
+        )
 
 
 def get_catalog_item(
@@ -206,7 +210,11 @@ def get_catalog_item(
         item = result["record"]
         
         # Get variables for the catalog item
-        variables = get_catalog_item_variables(config, auth_manager, item["sys_id"])
+        try:
+            variables = get_catalog_item_variables(config, auth_manager, item["sys_id"])
+        except Exception as e:
+            logger.error(f"Error getting variables for catalog item: {str(e)}")
+            variables = []
         
         # Format the response
         formatted_item = {
@@ -335,7 +343,7 @@ def list_catalog_categories(
     config: ServerConfig,
     auth_manager: AuthManager,
     params: ListCatalogCategoriesParams,
-) -> Dict[str, Any]:
+) -> CatalogResponse:
     """
     List service catalog categories from ServiceNow.
 
@@ -395,25 +403,29 @@ def list_catalog_categories(
                 "order": category.get("order", ""),
             })
         
-        return {
-            "success": True,
-            "message": f"Retrieved {len(formatted_categories)} catalog categories",
-            "categories": formatted_categories,
-            "total": len(formatted_categories),
-            "limit": params.limit,
-            "offset": params.offset,
-        }
+        return CatalogResponse(
+            success=True,
+            message=f"Retrieved {len(formatted_categories)} catalog categories",
+            data={
+                "categories": formatted_categories,
+                "total": len(formatted_categories),
+                "limit": params.limit,
+                "offset": params.offset,
+            }
+        )
     
     except requests.exceptions.RequestException as e:
         logger.error(f"Error listing catalog categories: {str(e)}")
-        return {
-            "success": False,
-            "message": f"Error listing catalog categories: {str(e)}",
-            "categories": [],
-            "total": 0,
-            "limit": params.limit,
-            "offset": params.offset,
-        }
+        return CatalogResponse(
+            success=False,
+            message=f"Failed to list catalog categories: {str(e)}",
+            data={
+                "categories": [],
+                "total": 0,
+                "limit": params.limit,
+                "offset": params.offset,
+            }
+        )
 
 
 def create_catalog_category(
