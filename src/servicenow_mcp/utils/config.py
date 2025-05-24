@@ -56,6 +56,7 @@ class ServerConfig(BaseModel):
     auth: AuthConfig
     debug: bool = False
     timeout: int = 30
+    script_execution_api_resource_path: Optional[str] = None
 
     @property
     def api_url(self) -> str:

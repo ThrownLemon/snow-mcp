@@ -706,10 +706,3 @@ def move_catalog_items(
             message=f"Error moving catalog items: {str(e)}",
             data=None,
         ) 
-    except Exception as e:
-        logger.error(f"Error moving catalog items: {str(e)}")
-        return CatalogResponse(
-            success=False,
-            message=f"Error moving catalog items: {str(e)}",
-            data=None,
-        ) 

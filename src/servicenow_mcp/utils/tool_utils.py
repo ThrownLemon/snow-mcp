@@ -813,7 +813,7 @@ def get_tool_definitions(
             str,  # Expects JSON string
             "Delete a script include in ServiceNow",
             "json_dict",  # Tool returns Pydantic model
-        ),
+        ), # Should be raw_pydantic if it returns ScriptIncludeResponse
         # Knowledge Base Tools
         "create_knowledge_base": (
             create_knowledge_base_tool,

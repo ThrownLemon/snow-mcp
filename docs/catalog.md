@@ -145,6 +145,39 @@ params = GetCatalogItemParams(
 result = get_catalog_item(config, auth_manager, params)
 ```
 
+### create_catalog_item
+
+Creates a new service catalog item. (Note: This tool is planned, check tool_packages.yaml for current availability)
+
+**Parameters:**
+- `name` (string, required): Name of the catalog item
+- `short_description` (string, optional): Short description
+- `description` (string, optional): Detailed description
+- `category_id` (string, required): Sys_id of the category this item belongs to
+- `price` (string, optional): Price of the item
+- `active` (boolean, default: true): Whether the item is active
+
+**Example:**
+```python
+# from servicenow_mcp.tools.catalog_tools import CreateCatalogItemParams, create_catalog_item
+# params = CreateCatalogItemParams(
+# name="New Software License",
+# short_description="Request a new software license",
+# category_id="some_category_sys_id",
+# price="50.00"
+# )
+# result = create_catalog_item(config, auth_manager, params)
+```
+
+### update_catalog_item
+
+Updates an existing service catalog item. This tool is part of catalog optimization.
+
+**Parameters:**
+- See docs/catalog_optimization_plan.md for UpdateCatalogItemParams.
+
+**Example:** See docs/catalog_optimization_plan.md.
+
 ## Resources
 
 The following resources are available for accessing the ServiceNow Service Catalog:

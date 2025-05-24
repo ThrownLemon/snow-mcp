@@ -175,6 +175,17 @@ result = add_workflow_activity({
 })
 ```
 
+Note: The `add_workflow_activity` tool technically requires `workflow_version_id` instead of `workflow_id`.
+You would first list workflow versions or get workflow details to find the appropriate draft version sys_id.
+Example with `workflow_version_id`:
+```python
+result = add_workflow_activity({
+    "workflow_version_id": "sys_id_of_the_workflow_version", # Target a specific version
+    "name": "Manager Approval",
+    "activity_type": "approval"
+})
+```
+
 #### Update an existing activity
 
 ```python

@@ -81,13 +81,13 @@ class AuthManager:
         oauth_config = self.config.oauth
         
         # Determine token URL
-        token_url = oauth_config.token_url
-        if not token_url:
+        if oauth_config.token_url:
+            token_url = oauth_config.token_url
+        elif self.config.instance_url: # Check if ServerConfig's instance_url is available
             # Extract instance name from instance URL
-            instance_parts = oauth_config.instance_url.split(".")
-            if len(instance_parts) < 2:
-                raise ValueError(f"Invalid instance URL: {oauth_config.instance_url}")
-            
+            instance_parts = self.config.instance_url.split(".")
+            if len(instance_parts) < 2: # Basic check for domain structure
+                raise ValueError(f"Invalid instance URL for OAuth token URL construction: {self.config.instance_url}")
             instance_name = instance_parts[0].split("//")[-1]
             token_url = f"https://{instance_name}.service-now.com/oauth_token.do"
         

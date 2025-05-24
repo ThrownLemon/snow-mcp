@@ -108,7 +108,7 @@ __all__ = [
     # Catalog tools
     "list_catalog_items",
     "get_catalog_item",
-    "list_catalog_categories",
+    "list_catalog_categories", # Catalog specific
     "create_catalog_category",
     "update_catalog_category",
     "move_catalog_items",
@@ -161,8 +161,8 @@ __all__ = [
     # Knowledge Base tools
     "create_knowledge_base",
     "list_knowledge_bases",
-    "create_category",
-    "list_categories",
+    "create_category", # KB specific
+    "list_categories", # KB specific
     "create_article",
     "update_article",
     "publish_article",

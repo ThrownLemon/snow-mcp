@@ -10,6 +10,8 @@ from typing import Optional, List
 import requests
 from pydantic import BaseModel, Field
 
+from datetime import datetime
+
 from servicenow_mcp.auth.auth_manager import AuthManager
 from servicenow_mcp.utils.config import ServerConfig
 
@@ -420,7 +422,7 @@ def resolve_incident(
         "state": "6",  # Resolved
         "close_code": params.resolution_code,
         "close_notes": params.resolution_notes,
-        "resolved_at": "now",
+        "resolved_at": datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'),
     }
 
     # Make request

@@ -109,7 +109,7 @@ config = ServerConfig(
     instance_url="https://your-instance.service-now.com",
     auth=AuthConfig(
         type=AuthType.BASIC,
-        config=BasicAuthConfig(
+        basic=BasicAuthConfig(
             username="your-username",
             password="your-password"
         )
@@ -206,11 +206,9 @@ The default `config/tool_packages.yaml` includes the following role-based packag
 
 #### Workflow Management Tools
 
-1. **list_workflows** - List workflows from ServiceNow
-2. **get_workflow** - Get a specific workflow from ServiceNow
-3. **create_workflow** - Create a new workflow in ServiceNow
-4. **update_workflow** - Update an existing workflow in ServiceNow
-5. **delete_workflow** - Delete a workflow from ServiceNow
+1.  **list_workflows, get_workflow_details, list_workflow_versions, get_workflow_activities** - View workflow information.
+2.  **create_workflow, update_workflow, activate_workflow, deactivate_workflow** - Manage workflow definitions.
+3.  **add_workflow_activity, update_workflow_activity, delete_workflow_activity, reorder_workflow_activities** - Manage activities within a workflow version.
 
 #### Script Include Management Tools
 
