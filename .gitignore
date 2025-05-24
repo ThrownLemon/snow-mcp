@@ -35,6 +35,13 @@ env/
 .cursor/
 .cursorrules
 .windsurf/
+.roo/
+roomodes/
+taskmasterconfig/
+windsurfroles/
+.roomodes
+.taskmasterconfig
+.windsurfrules
 
 # OS specific files
 .DS_Store
@@ -43,7 +50,6 @@ Thumbs.db
 # ServiceNow MCP specific
 # Environment variables and secrets
 .env*
-!.env.example
 
 # Task Master files
 tasks.json
