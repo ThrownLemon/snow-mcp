@@ -2,17 +2,17 @@
 Tests for the ServiceNow MCP server workflow management integration.
 """
 
-import unittest
+import pytest
 from unittest.mock import MagicMock, patch
 
 from servicenow_mcp.server import ServiceNowMCP
 from servicenow_mcp.utils.config import AuthConfig, AuthType, BasicAuthConfig, ServerConfig
 
 
-class TestServerWorkflow(unittest.TestCase):
+class TestServerWorkflow:
     """Tests for the ServiceNow MCP server workflow management integration."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set up test fixtures."""
         self.auth_config = AuthConfig(
             type=AuthType.BASIC,
@@ -52,10 +52,10 @@ class TestServerWorkflow(unittest.TestCase):
         """Test that workflow tools are registered with the MCP server."""
         # The current implementation registers tools differently
         # Test that the server has initialized the tool_definitions attribute
-        self.assertTrue(hasattr(self.server, 'tool_definitions'), "Server should have tool_definitions attribute")
+        assert hasattr(self.server, 'tool_definitions'), "Server should have tool_definitions attribute"
         
         # Check that the server has registered handlers
-        self.assertTrue(hasattr(self.server, 'mcp_server'), "Server should have mcp_server attribute")
+        assert hasattr(self.server, 'mcp_server'), "Server should have mcp_server attribute"
         
         # Check that workflow tools are in the tool definitions
         workflow_tools = [name for name in self.server.tool_definitions.keys() 
@@ -69,7 +69,7 @@ class TestServerWorkflow(unittest.TestCase):
                             name.startswith('delete_workflow') or
                             name.startswith('reorder_workflow')]
         
-        self.assertTrue(len(workflow_tools) > 0, "Expected workflow tools in tool definitions")
+        assert len(workflow_tools) > 0, "Expected workflow tools in tool definitions"
         
         # Check for some expected workflow tool functions
         expected_functions = [
@@ -88,8 +88,8 @@ class TestServerWorkflow(unittest.TestCase):
         ]
         
         for func in expected_functions:
-            self.assertIn(func, self.server.tool_definitions.keys(), f"Expected {func} to be registered as a tool")
+            assert func in self.server.tool_definitions.keys(), f"Expected {func} to be registered as a tool"
 
 
 if __name__ == "__main__":
-    unittest.main() 
+    pytest.main([__file__])

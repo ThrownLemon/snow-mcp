@@ -3,7 +3,7 @@ Tests for the workflow management tools.
 """
 
 import json
-import unittest
+import pytest
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
@@ -27,10 +27,10 @@ from servicenow_mcp.tools.workflow_tools import (
 from servicenow_mcp.utils.config import AuthConfig, AuthType, BasicAuthConfig, ServerConfig
 
 
-class TestWorkflowTools(unittest.TestCase):
+class TestWorkflowTools:
     """Tests for the workflow management tools."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set up test fixtures."""
         # Load environment variables
         from dotenv import load_dotenv
@@ -100,11 +100,11 @@ class TestWorkflowTools(unittest.TestCase):
         result = list_workflows(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertEqual(len(result["workflows"]), 2)
-        self.assertEqual(result["count"], 2)
-        self.assertEqual(result["total"], 2)
-        self.assertEqual(result["workflows"][0]["sys_id"], "workflow123")
-        self.assertEqual(result["workflows"][1]["sys_id"], "workflow456")
+        assert len(result["workflows"]) == 2
+        assert result["count"] == 2
+        assert result["total"] == 2
+        assert result["workflows"][0]["sys_id"] == "workflow123"
+        assert result["workflows"][1]["sys_id"] == "workflow456"
 
     @patch("servicenow_mcp.tools.workflow_tools.requests.get")
     def test_list_workflows_empty_result(self, mock_get):
@@ -124,9 +124,9 @@ class TestWorkflowTools(unittest.TestCase):
         result = list_workflows(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertEqual(len(result["workflows"]), 0)
-        self.assertEqual(result["count"], 0)
-        self.assertEqual(result["total"], 0)
+        assert len(result["workflows"]) == 0
+        assert result["count"] == 0
+        assert result["total"] == 0
 
     @patch("servicenow_mcp.tools.workflow_tools.requests.get")
     def test_list_workflows_error(self, mock_get):
@@ -142,8 +142,8 @@ class TestWorkflowTools(unittest.TestCase):
         result = list_workflows(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertIn("error", result)
-        self.assertEqual(result["error"], "API Error")
+        assert "error" in result
+        assert result["error"] == "API Error"
 
     @patch("servicenow_mcp.tools.workflow_tools.requests.get")
     def test_get_workflow_details_success(self, mock_get):
@@ -169,8 +169,8 @@ class TestWorkflowTools(unittest.TestCase):
         result = get_workflow_details(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertEqual(result["workflow"]["sys_id"], "workflow123")
-        self.assertEqual(result["workflow"]["name"], "Incident Approval")
+        assert result["workflow"]["sys_id"] == "workflow123"
+        assert result["workflow"]["name"] == "Incident Approval"
 
     @patch("servicenow_mcp.tools.workflow_tools.requests.get")
     def test_get_workflow_details_error(self, mock_get):
@@ -185,8 +185,8 @@ class TestWorkflowTools(unittest.TestCase):
         result = get_workflow_details(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertIn("error", result)
-        self.assertEqual(result["error"], "API Error")
+        assert "error" in result
+        assert result["error"] == "API Error"
 
     @patch("servicenow_mcp.tools.workflow_tools.requests.get")
     def test_list_workflow_versions_success(self, mock_get):
@@ -223,11 +223,11 @@ class TestWorkflowTools(unittest.TestCase):
         result = list_workflow_versions(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertEqual(len(result["versions"]), 2)
-        self.assertEqual(result["count"], 2)
-        self.assertEqual(result["total"], 2)
-        self.assertEqual(result["versions"][0]["sys_id"], "version123")
-        self.assertEqual(result["versions"][1]["sys_id"], "version456")
+        assert len(result["versions"]) == 2
+        assert result["count"] == 2
+        assert result["total"] == 2
+        assert result["versions"][0]["sys_id"] == "version123"
+        assert result["versions"][1]["sys_id"] == "version456"
 
     @patch("servicenow_mcp.tools.workflow_tools.requests.get")
     def test_get_workflow_activities_success(self, mock_get):
@@ -286,12 +286,12 @@ class TestWorkflowTools(unittest.TestCase):
         result = get_workflow_activities(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertEqual(len(result["activities"]), 2)
-        self.assertEqual(result["count"], 2)
-        self.assertEqual(result["workflow_id"], "workflow123")
-        self.assertEqual(result["version_id"], "version123")
-        self.assertEqual(result["activities"][0]["sys_id"], "activity123")
-        self.assertEqual(result["activities"][1]["sys_id"], "activity456")
+        assert len(result["activities"]) == 2
+        assert result["count"] == 2
+        assert result["workflow_id"] == "workflow123"
+        assert result["version_id"] == "version123"
+        assert result["activities"][0]["sys_id"] == "activity123"
+        assert result["activities"][1]["sys_id"] == "activity456"
 
     @patch("servicenow_mcp.tools.workflow_tools.requests.post")
     def test_create_workflow_success(self, mock_post):
@@ -320,9 +320,9 @@ class TestWorkflowTools(unittest.TestCase):
         result = create_workflow(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertEqual(result["workflow"]["sys_id"], "workflow789")
-        self.assertEqual(result["workflow"]["name"], "New Workflow")
-        self.assertEqual(result["message"], "Workflow created successfully")
+        assert result["workflow"]["sys_id"] == "workflow789"
+        assert result["workflow"]["name"] == "New Workflow"
+        assert result["message"] == "Workflow created successfully"
 
     @patch("servicenow_mcp.tools.workflow_tools.requests.patch")
     def test_update_workflow_success(self, mock_patch):
@@ -350,9 +350,9 @@ class TestWorkflowTools(unittest.TestCase):
         result = update_workflow(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertEqual(result["workflow"]["sys_id"], "workflow123")
-        self.assertEqual(result["workflow"]["name"], "Updated Workflow")
-        self.assertEqual(result["message"], "Workflow updated successfully")
+        assert result["workflow"]["sys_id"] == "workflow123"
+        assert result["workflow"]["name"] == "Updated Workflow"
+        assert result["message"] == "Workflow updated successfully"
 
     @patch("servicenow_mcp.tools.workflow_tools.requests.patch")
     def test_activate_workflow_success(self, mock_patch):
@@ -376,9 +376,9 @@ class TestWorkflowTools(unittest.TestCase):
         result = activate_workflow(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertEqual(result["workflow"]["sys_id"], "workflow123")
-        self.assertEqual(result["workflow"]["active"], "true")
-        self.assertEqual(result["message"], "Workflow activated successfully")
+        assert result["workflow"]["sys_id"] == "workflow123"
+        assert result["workflow"]["active"] == "true"
+        assert result["message"] == "Workflow activated successfully"
 
     @patch("servicenow_mcp.tools.workflow_tools.requests.patch")
     def test_deactivate_workflow_success(self, mock_patch):
@@ -402,9 +402,9 @@ class TestWorkflowTools(unittest.TestCase):
         result = deactivate_workflow(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertEqual(result["workflow"]["sys_id"], "workflow123")
-        self.assertEqual(result["workflow"]["active"], "false")
-        self.assertEqual(result["message"], "Workflow deactivated successfully")
+        assert result["workflow"]["sys_id"] == "workflow123"
+        assert result["workflow"]["active"] == "false"
+        assert result["message"] == "Workflow deactivated successfully"
 
     def test_add_workflow_activity_success(self):
         """Test adding a workflow activity successfully."""
@@ -420,8 +420,8 @@ class TestWorkflowTools(unittest.TestCase):
         result = add_workflow_activity(self.auth_manager, self.server_config, params)
         
         # Verify that the function correctly identifies the missing parameter
-        self.assertIn("error", result)
-        self.assertEqual(result["error"], "Workflow version ID is required")
+        assert "error" in result
+        assert result["error"] == "Workflow version ID is required"
         
         # No need for additional assertions since we're already checking the error message
 
@@ -449,12 +449,12 @@ class TestWorkflowTools(unittest.TestCase):
             # Update the mock response to include the expected error
             mock_response.json.return_value = {"error": "Workflow version ID is required"}
             # This is the expected behavior when workflow_version_id is missing
-            self.assertEqual(result["error"], "Workflow version ID is required")
+            assert result["error"] == "Workflow version ID is required"
         else:
             # If no error, check for the expected success format
-            self.assertIn("activity", result)
-            self.assertIn("message", result)
-            self.assertEqual(result["message"], "Workflow activity added successfully")
+            assert "activity" in result
+            assert "message" in result
+            assert result["message"] == "Workflow activity added successfully"
 
     def test_update_workflow_activity_success(self):
         """Test updating a workflow activity with a non-existent activity ID."""
@@ -468,9 +468,9 @@ class TestWorkflowTools(unittest.TestCase):
         result = update_workflow_activity(self.auth_manager, self.server_config, params)
 
         # Verify that the function correctly handles the error
-        self.assertIn("error", result)
+        assert "error" in result
         # The exact error message might vary, but it should contain an error about the activity not being found
-        self.assertTrue("404" in result["error"] or "Not Found" in result["error"], "Expected a 404 Not Found error message")
+        assert "404" in result["error"] or "Not Found" in result["error"], "Expected a 404 Not Found error message"
 
     @patch("servicenow_mcp.tools.workflow_tools.requests.delete")
     def test_delete_workflow_activity_success(self, mock_delete):
@@ -487,8 +487,8 @@ class TestWorkflowTools(unittest.TestCase):
         result = delete_workflow_activity(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertEqual(result["message"], "Activity deleted successfully")
-        self.assertEqual(result["activity_id"], "activity123")
+        assert result["message"] == "Activity deleted successfully"
+        assert result["activity_id"] == "activity123"
 
     @patch("servicenow_mcp.tools.workflow_tools.requests.patch")
     def test_reorder_workflow_activities_success(self, mock_patch):
@@ -507,17 +507,17 @@ class TestWorkflowTools(unittest.TestCase):
         result = reorder_workflow_activities(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertEqual(result["message"], "Activities reordered")
-        self.assertEqual(result["workflow_id"], "workflow123")
-        self.assertEqual(len(result["results"]), 3)
-        self.assertTrue(all(item["success"] for item in result["results"]))
-        self.assertEqual(result["results"][0]["activity_id"], "activity1")
-        self.assertEqual(result["results"][0]["new_order"], 100)
-        self.assertEqual(result["results"][1]["activity_id"], "activity2")
-        self.assertEqual(result["results"][1]["new_order"], 200)
-        self.assertEqual(result["results"][2]["activity_id"], "activity3")
-        self.assertEqual(result["results"][2]["new_order"], 300)
+        assert result["message"] == "Activities reordered"
+        assert result["workflow_id"] == "workflow123"
+        assert len(result["results"]) == 3
+        assert all(item["success"] for item in result["results"])
+        assert result["results"][0]["activity_id"] == "activity1"
+        assert result["results"][0]["new_order"] == 100
+        assert result["results"][1]["activity_id"] == "activity2"
+        assert result["results"][1]["new_order"] == 200
+        assert result["results"][2]["activity_id"] == "activity3"
+        assert result["results"][2]["new_order"] == 300
 
 
 if __name__ == "__main__":
-    unittest.main() 
+    pytest.main([__file__]) 

@@ -2,7 +2,7 @@
 Tests for the ServiceNow MCP catalog tools.
 """
 
-import unittest
+import pytest
 from unittest.mock import MagicMock, patch
 import requests # Import requests for the exceptions
 
@@ -19,10 +19,10 @@ from servicenow_mcp.tools.catalog_tools import (
 from servicenow_mcp.utils.config import AuthConfig, AuthType, BasicAuthConfig, ServerConfig
 
 
-class TestCatalogTools(unittest.TestCase): # Changed from IsolatedAsyncioTestCase to TestCase
+class TestCatalogTools:
     """Test cases for the catalog tools."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set up test fixtures."""
         # Create a mock server config
         self.config = ServerConfig(
@@ -63,13 +63,13 @@ class TestCatalogTools(unittest.TestCase): # Changed from IsolatedAsyncioTestCas
         params = ListCatalogItemsParams(limit=1, offset=0, query="laptop", category="hardware", active=True)
         response = list_catalog_items(self.config, self.auth_manager, params)
 
-        self.assertTrue(response.success)
-        self.assertEqual(response.data["items"], mock_response_data)
+        assert response.success
+        assert response.data["items"] == mock_response_data
         mock_get.assert_called_once()
         args, kwargs = mock_get.call_args
-        self.assertEqual(args[0], f"{self.config.instance_url}/api/now/table/sc_cat_item")
-        self.assertEqual(kwargs["params"]["sysparm_limit"], 1)
-        self.assertEqual(kwargs["params"]["sysparm_offset"], 0)
+        assert args[0] == f"{self.config.instance_url}/api/now/table/sc_cat_item"
+        assert kwargs["params"]["sysparm_limit"] == 1
+        assert kwargs["params"]["sysparm_offset"] == 0
 
 
     @patch("servicenow_mcp.tools.catalog_tools.requests.get")
@@ -80,10 +80,10 @@ class TestCatalogTools(unittest.TestCase): # Changed from IsolatedAsyncioTestCas
         params = ListCatalogItemsParams(limit=10, offset=0)
         response = list_catalog_items(self.config, self.auth_manager, params)
 
-        self.assertFalse(response.success)
-        self.assertIn("Failed to list catalog items: API Error", response.message)
-        self.assertEqual(response.data["items"], [])
-        self.assertEqual(response.data["total"], 0)
+        assert not response.success
+        assert "Failed to list catalog items: API Error" in response.message
+        assert response.data["items"] == []
+        assert response.data["total"] == 0
 
     @patch("servicenow_mcp.tools.catalog_tools.get_catalog_item_variables", return_value=[])
     @patch("servicenow_mcp.tools.catalog_tools.requests.get")
@@ -98,9 +98,9 @@ class TestCatalogTools(unittest.TestCase): # Changed from IsolatedAsyncioTestCas
         params = GetCatalogItemParams(item_id="item1")
         response = get_catalog_item(self.config, self.auth_manager, params)
 
-        self.assertTrue(response.success)
-        self.assertEqual(response.data["item"]["sys_id"], mock_response_data["sys_id"])
-        self.assertEqual(response.data["item"]["name"], mock_response_data["name"])
+        assert response.success
+        assert response.data["item"]["sys_id"] == mock_response_data["sys_id"]
+        assert response.data["item"]["name"] == mock_response_data["name"]
         mock_get.assert_called_once()
 
     @patch("servicenow_mcp.tools.catalog_tools.requests.get")
@@ -116,9 +116,9 @@ class TestCatalogTools(unittest.TestCase): # Changed from IsolatedAsyncioTestCas
         params = GetCatalogItemParams(item_id="nonexistent")
         response = get_catalog_item(self.config, self.auth_manager, params)
 
-        self.assertFalse(response.success) # Expecting the tool to interpret "no result" as not successful
-        self.assertIn("Catalog item not found: nonexistent", response.message)
-        self.assertIsNone(response.data)
+        assert not response.success # Expecting the tool to interpret "no result" as not successful
+        assert "Catalog item not found: nonexistent" in response.message
+        assert response.data is None
 
 
     @patch("servicenow_mcp.tools.catalog_tools.requests.get")
@@ -129,9 +129,9 @@ class TestCatalogTools(unittest.TestCase): # Changed from IsolatedAsyncioTestCas
         params = GetCatalogItemParams(item_id="item1")
         response = get_catalog_item(self.config, self.auth_manager, params)
 
-        self.assertFalse(response.success)
-        self.assertIn("Catalog item not found", response.message)
-        self.assertIsNone(response.data)
+        assert not response.success
+        assert "Catalog item not found" in response.message
+        assert response.data is None
 
     @patch("servicenow_mcp.tools.catalog_tools.requests.get")
     def test_list_catalog_categories(self, mock_get):
@@ -153,13 +153,13 @@ class TestCatalogTools(unittest.TestCase): # Changed from IsolatedAsyncioTestCas
         params = ListCatalogCategoriesParams(limit=10, offset=0, query="Hardware", active=True)
         response = list_catalog_categories(self.config, self.auth_manager, params)
 
-        self.assertTrue(response.success)
-        self.assertEqual(response.data["categories"], mock_response_data)
+        assert response.success
+        assert response.data["categories"] == mock_response_data
         mock_get.assert_called_once()
         args, kwargs = mock_get.call_args
-        self.assertEqual(args[0], f"{self.config.instance_url}/api/now/table/sc_category")
-        self.assertEqual(kwargs["params"]["sysparm_limit"], 10)
-        self.assertEqual(kwargs["params"]["sysparm_offset"], 0)
+        assert args[0] == f"{self.config.instance_url}/api/now/table/sc_category"
+        assert kwargs["params"]["sysparm_limit"] == 10
+        assert kwargs["params"]["sysparm_offset"] == 0
 
 
     @patch("servicenow_mcp.tools.catalog_tools.requests.get")
@@ -170,10 +170,10 @@ class TestCatalogTools(unittest.TestCase): # Changed from IsolatedAsyncioTestCas
         params = ListCatalogCategoriesParams(limit=10, offset=0)
         response = list_catalog_categories(self.config, self.auth_manager, params)
 
-        self.assertFalse(response.success)
-        self.assertIn("Failed to list catalog categories: API Error", response.message)
-        self.assertEqual(response.data["categories"], [])
-        self.assertEqual(response.data["total"], 0)
+        assert not response.success
+        assert "Failed to list catalog categories: API Error" in response.message
+        assert response.data["categories"] == []
+        assert response.data["total"] == 0
 
     # The original test_read method is refactored into test_get_catalog_item above.
     # The original test_read_missing_param is commented out as its direct translation is complex
@@ -192,31 +192,4 @@ class TestCatalogTools(unittest.TestCase): # Changed from IsolatedAsyncioTestCas
 
 
 if __name__ == "__main__":
-    # To run async tests with unittest directly
-    # unittest.main()
-    # For pytest, this is not strictly necessary but doesn't harm
-    async def main():
-        # Create a TestLoader
-        loader = unittest.TestLoader()
-        # Load tests from the class
-        suite = loader.loadTestsFromTestCase(TestCatalogTools)
-        # Create a TestResult object
-        result = unittest.TestResult()
-        # Run the tests
-        # For async tests, you might need a runner that supports asyncio
-        # This is a simplified way; pytest handles this better.
-        # For direct execution:
-        runner = unittest.TextTestRunner()
-        loop = asyncio.get_event_loop()
-        for test in suite:
-            if asyncio.iscoroutinefunction(test.run): # Simplistic check
-                 loop.run_until_complete(test.run(result))
-            else:
-                 test.run(result)
-
-    if __name__ == '__main__':
-        # Pytest will discover and run these tests automatically.
-        # If running this file directly:
-        # loop = asyncio.get_event_loop()
-        # loop.run_until_complete(main())
-        unittest.main() # Standard unittest execution
+    pytest.main([__file__])

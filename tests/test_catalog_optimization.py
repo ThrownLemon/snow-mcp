@@ -2,7 +2,7 @@
 Tests for the ServiceNow MCP catalog optimization tools.
 """
 
-import unittest
+import pytest
 from unittest.mock import MagicMock, patch
 
 import requests
@@ -22,10 +22,10 @@ from servicenow_mcp.tools.catalog_optimization import (
 from servicenow_mcp.utils.config import AuthConfig, AuthType, BasicAuthConfig, ServerConfig
 
 
-class TestCatalogOptimizationTools(unittest.TestCase):
+class TestCatalogOptimizationTools:
     """Test cases for the catalog optimization tools."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set up test fixtures."""
         # Create a mock server config
         self.config = ServerConfig(
@@ -67,14 +67,14 @@ class TestCatalogOptimizationTools(unittest.TestCase):
         result = _get_inactive_items(self.config, self.auth_manager)
 
         # Verify the results
-        self.assertEqual(len(result), 2)
-        self.assertEqual(result[0]["name"], "Old Laptop")
-        self.assertEqual(result[1]["name"], "Legacy Software")
+        assert len(result) == 2
+        assert result[0]["name"] == "Old Laptop"
+        assert result[1]["name"] == "Legacy Software"
 
         # Verify the API call
         mock_get.assert_called_once()
         args, kwargs = mock_get.call_args
-        self.assertEqual(kwargs["params"]["sysparm_query"], "active=false")
+        assert kwargs["params"]["sysparm_query"] == "active=false"
 
     @patch("requests.get")
     def test_get_inactive_items_with_category(self, mock_get):
@@ -97,13 +97,13 @@ class TestCatalogOptimizationTools(unittest.TestCase):
         result = _get_inactive_items(self.config, self.auth_manager, "hardware")
 
         # Verify the results
-        self.assertEqual(len(result), 1)
-        self.assertEqual(result[0]["name"], "Old Laptop")
+        assert len(result) == 1
+        assert result[0]["name"] == "Old Laptop"
 
         # Verify the API call
         mock_get.assert_called_once()
         args, kwargs = mock_get.call_args
-        self.assertEqual(kwargs["params"]["sysparm_query"], "active=false^category=hardware")
+        assert kwargs["params"]["sysparm_query"] == "active=false^category=hardware"
 
     @patch("requests.get")
     def test_get_inactive_items_error(self, mock_get):
@@ -115,7 +115,7 @@ class TestCatalogOptimizationTools(unittest.TestCase):
         result = _get_inactive_items(self.config, self.auth_manager)
 
         # Verify the results
-        self.assertEqual(result, [])
+        assert result == []
 
     @patch("requests.get")
     @patch("random.sample")
@@ -171,16 +171,16 @@ class TestCatalogOptimizationTools(unittest.TestCase):
         result = _get_low_usage_items(self.config, self.auth_manager)
 
         # Verify the results
-        self.assertEqual(len(result), 2)
-        self.assertEqual(result[0]["name"], "Rarely Used Laptop")
-        self.assertEqual(result[0]["order_count"], 2)
-        self.assertEqual(result[1]["name"], "Unpopular Software")
-        self.assertEqual(result[1]["order_count"], 2)
+        assert len(result) == 2
+        assert result[0]["name"] == "Rarely Used Laptop"
+        assert result[0]["order_count"] == 2
+        assert result[1]["name"] == "Unpopular Software"
+        assert result[1]["order_count"] == 2
 
         # Verify the API call
         mock_get.assert_called_once()
         args, kwargs = mock_get.call_args
-        self.assertEqual(kwargs["params"]["sysparm_query"], "active=true")
+        assert kwargs["params"]["sysparm_query"] == "active=true"
 
     def test_high_abandonment_items_format(self):
         """Test the expected format of high abandonment items."""
@@ -210,15 +210,15 @@ class TestCatalogOptimizationTools(unittest.TestCase):
         ]
         
         # Verify the expected format
-        self.assertEqual(len(high_abandonment_items), 2)
-        self.assertEqual(high_abandonment_items[0]["name"], "Complex Request")
-        self.assertEqual(high_abandonment_items[0]["abandonment_rate"], 60)
-        self.assertEqual(high_abandonment_items[0]["cart_adds"], 30)
-        self.assertEqual(high_abandonment_items[0]["orders"], 12)
-        self.assertEqual(high_abandonment_items[1]["name"], "Expensive Item")
-        self.assertEqual(high_abandonment_items[1]["abandonment_rate"], 60)
-        self.assertEqual(high_abandonment_items[1]["cart_adds"], 20)
-        self.assertEqual(high_abandonment_items[1]["orders"], 8)
+        assert len(high_abandonment_items) == 2
+        assert high_abandonment_items[0]["name"] == "Complex Request"
+        assert high_abandonment_items[0]["abandonment_rate"] == 60
+        assert high_abandonment_items[0]["cart_adds"] == 30
+        assert high_abandonment_items[0]["orders"] == 12
+        assert high_abandonment_items[1]["name"] == "Expensive Item"
+        assert high_abandonment_items[1]["abandonment_rate"] == 60
+        assert high_abandonment_items[1]["cart_adds"] == 20
+        assert high_abandonment_items[1]["orders"] == 8
 
     @patch("requests.get")
     @patch("random.sample")
@@ -268,13 +268,13 @@ class TestCatalogOptimizationTools(unittest.TestCase):
         result = _get_slow_fulfillment_items(self.config, self.auth_manager)
 
         # Verify the results
-        self.assertEqual(len(result), 2)
-        self.assertEqual(result[0]["name"], "Custom Hardware")
-        self.assertEqual(result[0]["avg_fulfillment_time"], 7.5)
-        self.assertEqual(result[0]["avg_fulfillment_time_vs_catalog"], 3.0)  # 7.5 / 2.5 = 3.0
-        self.assertEqual(result[1]["name"], "Complex Software")
-        self.assertEqual(result[1]["avg_fulfillment_time"], 7.5)
-        self.assertEqual(result[1]["avg_fulfillment_time_vs_catalog"], 3.0)  # 7.5 / 2.5 = 3.0
+        assert len(result) == 2
+        assert result[0]["name"] == "Custom Hardware"
+        assert result[0]["avg_fulfillment_time"] == 7.5
+        assert result[0]["avg_fulfillment_time_vs_catalog"] == 3.0  # 7.5 / 2.5 = 3.0
+        assert result[1]["name"] == "Complex Software"
+        assert result[1]["avg_fulfillment_time"] == 7.5
+        assert result[1]["avg_fulfillment_time_vs_catalog"] == 3.0  # 7.5 / 2.5 = 3.0
 
     @patch("requests.get")
     def test_get_poor_description_items(self, mock_get):
@@ -309,22 +309,22 @@ class TestCatalogOptimizationTools(unittest.TestCase):
         result = _get_poor_description_items(self.config, self.auth_manager)
 
         # Verify the results
-        self.assertEqual(len(result), 3)
+        assert len(result) == 3
         
         # Check the first item (empty description)
-        self.assertEqual(result[0]["name"], "Laptop")
-        self.assertEqual(result[0]["description_quality"], 0)
-        self.assertEqual(result[0]["quality_issues"], ["Missing description"])
+        assert result[0]["name"] == "Laptop"
+        assert result[0]["description_quality"] == 0
+        assert result[0]["quality_issues"] == ["Missing description"]
         
         # Check the second item (short description)
-        self.assertEqual(result[1]["name"], "Software")
-        self.assertEqual(result[1]["description_quality"], 30)
-        self.assertEqual(result[1]["quality_issues"], ["Description too short", "Lacks detail"])
+        assert result[1]["name"] == "Software"
+        assert result[1]["description_quality"] == 30
+        assert result[1]["quality_issues"] == ["Description too short", "Lacks detail"]
         
         # Check the third item (instructional language)
-        self.assertEqual(result[2]["name"], "Service")
-        self.assertEqual(result[2]["description_quality"], 50)
-        self.assertEqual(result[2]["quality_issues"], ["Uses instructional language instead of descriptive"])
+        assert result[2]["name"] == "Service"
+        assert result[2]["description_quality"] == 50
+        assert result[2]["quality_issues"] == ["Uses instructional language instead of descriptive"]
 
     @patch("servicenow_mcp.tools.catalog_optimization._get_inactive_items")
     @patch("servicenow_mcp.tools.catalog_optimization._get_low_usage_items")
@@ -409,25 +409,25 @@ class TestCatalogOptimizationTools(unittest.TestCase):
         result = get_optimization_recommendations(self.config, self.auth_manager, params)
 
         # Verify the results
-        self.assertTrue(result["success"])
-        self.assertEqual(len(result["recommendations"]), 5)
+        assert result["success"]
+        assert len(result["recommendations"]) == 5
         
         # Check each recommendation type
         recommendation_types = [rec["type"] for rec in result["recommendations"]]
-        self.assertIn("inactive_items", recommendation_types)
-        self.assertIn("low_usage", recommendation_types)
-        self.assertIn("high_abandonment", recommendation_types)
-        self.assertIn("slow_fulfillment", recommendation_types)
-        self.assertIn("description_quality", recommendation_types)
+        assert "inactive_items" in recommendation_types
+        assert "low_usage" in recommendation_types
+        assert "high_abandonment" in recommendation_types
+        assert "slow_fulfillment" in recommendation_types
+        assert "description_quality" in recommendation_types
         
         # Check that each recommendation has the expected fields
         for rec in result["recommendations"]:
-            self.assertIn("title", rec)
-            self.assertIn("description", rec)
-            self.assertIn("items", rec)
-            self.assertIn("impact", rec)
-            self.assertIn("effort", rec)
-            self.assertIn("action", rec)
+            assert "title" in rec
+            assert "description" in rec
+            assert "items" in rec
+            assert "impact" in rec
+            assert "effort" in rec
+            assert "action" in rec
 
     @patch("servicenow_mcp.tools.catalog_optimization._get_inactive_items")
     @patch("servicenow_mcp.tools.catalog_optimization._get_low_usage_items")
@@ -462,16 +462,16 @@ class TestCatalogOptimizationTools(unittest.TestCase):
         result = get_optimization_recommendations(self.config, self.auth_manager, params)
 
         # Verify the results
-        self.assertTrue(result["success"])
-        self.assertEqual(len(result["recommendations"]), 2)
+        assert result["success"]
+        assert len(result["recommendations"]) == 2
         
         # Check each recommendation type
         recommendation_types = [rec["type"] for rec in result["recommendations"]]
-        self.assertIn("inactive_items", recommendation_types)
-        self.assertIn("low_usage", recommendation_types)
-        self.assertNotIn("high_abandonment", recommendation_types)
-        self.assertNotIn("slow_fulfillment", recommendation_types)
-        self.assertNotIn("description_quality", recommendation_types)
+        assert "inactive_items" in recommendation_types
+        assert "low_usage" in recommendation_types
+        assert "high_abandonment" not in recommendation_types
+        assert "slow_fulfillment" not in recommendation_types
+        assert "description_quality" not in recommendation_types
 
     @patch("requests.patch")
     def test_update_catalog_item(self, mock_patch):
@@ -502,14 +502,14 @@ class TestCatalogOptimizationTools(unittest.TestCase):
         result = update_catalog_item(self.config, self.auth_manager, params)
 
         # Verify the results
-        self.assertTrue(result["success"])
-        self.assertEqual(result["data"]["short_description"], "Updated laptop description")
+        assert result["success"]
+        assert result["data"]["short_description"] == "Updated laptop description"
         
         # Verify the API call
         mock_patch.assert_called_once()
         args, kwargs = mock_patch.call_args
-        self.assertEqual(args[0], "https://example.service-now.com/api/now/table/sc_cat_item/item1")
-        self.assertEqual(kwargs["json"], {"short_description": "Updated laptop description"})
+        assert args[0] == "https://example.service-now.com/api/now/table/sc_cat_item/item1"
+        assert kwargs["json"] == {"short_description": "Updated laptop description"}
 
     @patch("requests.patch")
     def test_update_catalog_item_multiple_fields(self, mock_patch):
@@ -542,20 +542,20 @@ class TestCatalogOptimizationTools(unittest.TestCase):
         result = update_catalog_item(self.config, self.auth_manager, params)
 
         # Verify the results
-        self.assertTrue(result["success"])
-        self.assertEqual(result["data"]["name"], "Updated Laptop")
-        self.assertEqual(result["data"]["short_description"], "Updated laptop description")
-        self.assertEqual(result["data"]["price"], "1099.99")
+        assert result["success"]
+        assert result["data"]["name"] == "Updated Laptop"
+        assert result["data"]["short_description"] == "Updated laptop description"
+        assert result["data"]["price"] == "1099.99"
         
         # Verify the API call
         mock_patch.assert_called_once()
         args, kwargs = mock_patch.call_args
-        self.assertEqual(args[0], "https://example.service-now.com/api/now/table/sc_cat_item/item1")
-        self.assertEqual(kwargs["json"], {
+        assert args[0] == "https://example.service-now.com/api/now/table/sc_cat_item/item1"
+        assert kwargs["json"] == {
             "name": "Updated Laptop",
             "short_description": "Updated laptop description",
             "price": "1099.99",
-        })
+        }
 
     @patch("requests.patch")
     def test_update_catalog_item_error(self, mock_patch):
@@ -573,10 +573,10 @@ class TestCatalogOptimizationTools(unittest.TestCase):
         result = update_catalog_item(self.config, self.auth_manager, params)
 
         # Verify the results
-        self.assertFalse(result["success"])
-        self.assertIn("Error updating catalog item", result["message"])
-        self.assertIsNone(result["data"])
+        assert not result["success"]
+        assert "Error updating catalog item" in result["message"]
+        assert result["data"] is None
 
 
 if __name__ == "__main__":
-    unittest.main() 
+    pytest.main([__file__]) 

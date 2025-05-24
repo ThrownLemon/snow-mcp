@@ -4,7 +4,7 @@ Tests for the changeset tools.
 This module contains tests for the changeset tools in the ServiceNow MCP server.
 """
 
-import unittest
+import pytest
 from unittest.mock import MagicMock, patch
 import requests # Ensure requests is imported for requests.exceptions.RequestException
 
@@ -19,10 +19,10 @@ from servicenow_mcp.tools.changeset_tools import (
 from servicenow_mcp.utils.config import ServerConfig, AuthConfig, AuthType, BasicAuthConfig
 
 
-class TestChangesetTools(unittest.TestCase): # Changed from IsolatedAsyncioTestCase to TestCase
+class TestChangesetTools:
     """Tests for the changeset tools."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set up test fixtures."""
         auth_config = AuthConfig(
             type=AuthType.BASIC,
@@ -68,18 +68,18 @@ class TestChangesetTools(unittest.TestCase): # Changed from IsolatedAsyncioTestC
         # Assuming list_changesets now returns a dict/Pydantic model
         response = list_changesets(self.server_config, self.auth_manager, params)
 
-        self.assertTrue(response["success"]) # Or response.success if Pydantic model
-        self.assertEqual(response["changesets"], mock_response_data) # Or response.data
+        assert response["success"] # Or response.success if Pydantic model
+        assert response["changesets"] == mock_response_data # Or response.data
         mock_get.assert_called_once()
         args, kwargs = mock_get.call_args
-        self.assertEqual(args[0], f"{self.server_config.instance_url}/api/now/table/sys_update_set")
-        self.assertEqual(kwargs["params"]["sysparm_limit"], 10)
-        self.assertEqual(kwargs["params"]["sysparm_offset"], 0)
+        assert args[0] == f"{self.server_config.instance_url}/api/now/table/sys_update_set"
+        assert kwargs["params"]["sysparm_limit"] == 10
+        assert kwargs["params"]["sysparm_offset"] == 0
         # Check that the query string contains the expected filters
         query_string = kwargs["params"]["sysparm_query"]
-        self.assertIn("state=in_progress", query_string)
-        self.assertIn("application=Test App", query_string)
-        self.assertIn("developer=test.user", query_string)
+        assert "state=in_progress" in query_string
+        assert "application=Test App" in query_string
+        assert "developer=test.user" in query_string
 
 
     @patch("servicenow_mcp.tools.changeset_tools.requests.get")
@@ -102,18 +102,18 @@ class TestChangesetTools(unittest.TestCase): # Changed from IsolatedAsyncioTestC
         params = GetChangesetDetailsParams(changeset_id="123")
         response = get_changeset_details(self.server_config, self.auth_manager, params)
 
-        self.assertTrue(response["success"])
-        self.assertEqual(response["changeset"], mock_response_data)
+        assert response["success"]
+        assert response["changeset"] == mock_response_data
         # Check that both API calls were made correctly
-        self.assertEqual(mock_get.call_count, 2)
+        assert mock_get.call_count == 2
         
         # Check first call to get changeset details
         first_call = mock_get.call_args_list[0]
-        self.assertEqual(first_call[0][0], f"{self.server_config.instance_url}/api/now/table/sys_update_set/{params.changeset_id}")
+        assert first_call[0][0] == f"{self.server_config.instance_url}/api/now/table/sys_update_set/{params.changeset_id}"
         
         # Check second call to get changes
         second_call = mock_get.call_args_list[1]
-        self.assertEqual(second_call[0][0], f"{self.server_config.instance_url}/api/now/table/sys_update_xml")
+        assert second_call[0][0] == f"{self.server_config.instance_url}/api/now/table/sys_update_xml"
 
     @patch("servicenow_mcp.tools.changeset_tools.requests.get")
     def test_list_changesets_error(self, mock_get):
@@ -123,8 +123,8 @@ class TestChangesetTools(unittest.TestCase): # Changed from IsolatedAsyncioTestC
         params = ListChangesetsParams()
         response = list_changesets(self.server_config, self.auth_manager, params)
 
-        self.assertFalse(response["success"])
-        self.assertIn("Test error", response["message"])
+        assert not response["success"]
+        assert "Test error" in response["message"]
 
     @patch("servicenow_mcp.tools.changeset_tools.requests.get")
     def test_get_changeset_details_error(self, mock_get):
@@ -134,11 +134,11 @@ class TestChangesetTools(unittest.TestCase): # Changed from IsolatedAsyncioTestC
         params = GetChangesetDetailsParams(changeset_id="123")
         response = get_changeset_details(self.server_config, self.auth_manager, params)
 
-        self.assertFalse(response["success"])
-        self.assertIn("Test error", response["message"])
+        assert not response["success"]
+        assert "Test error" in response["message"]
 
 
-class TestListChangesetsParams(unittest.TestCase): # Updated class name
+class TestListChangesetsParams:
     """Tests for the ListChangesetsParams class."""
 
     def test_list_changesets_params(self): # Updated method name
@@ -150,21 +150,21 @@ class TestListChangesetsParams(unittest.TestCase): # Updated class name
             application="Test App",
             developer="test.user",
         )
-        self.assertEqual(params.limit, 20)
-        self.assertEqual(params.offset, 10)
-        self.assertEqual(params.state, "in_progress")
-        self.assertEqual(params.application, "Test App")
-        self.assertEqual(params.developer, "test.user")
+        assert params.limit == 20
+        assert params.offset == 10
+        assert params.state == "in_progress"
+        assert params.application == "Test App"
+        assert params.developer == "test.user"
 
     def test_list_changesets_params_defaults(self): # Updated method name
         """Test ListChangesetsParams defaults."""
         params = ListChangesetsParams()
-        self.assertEqual(params.limit, 10) # Default from Pydantic model
-        self.assertEqual(params.offset, 0) # Default from Pydantic model
-        self.assertIsNone(params.state)
-        self.assertIsNone(params.application)
-        self.assertIsNone(params.developer)
+        assert params.limit == 10 # Default from Pydantic model
+        assert params.offset == 0 # Default from Pydantic model
+        assert params.state is None
+        assert params.application is None
+        assert params.developer is None
 
 
 if __name__ == "__main__":
-    unittest.main()
+    pytest.main([__file__])

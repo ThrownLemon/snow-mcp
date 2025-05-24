@@ -2,7 +2,7 @@
 Tests for the change management tools.
 """
 
-import unittest
+import pytest
 from unittest.mock import MagicMock, patch
 
 import requests
@@ -15,10 +15,10 @@ from servicenow_mcp.tools.change_tools import (
 from servicenow_mcp.utils.config import AuthConfig, AuthType, BasicAuthConfig, ServerConfig
 
 
-class TestChangeTools(unittest.TestCase):
+class TestChangeTools:
     """Tests for the change management tools."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set up test fixtures."""
         self.auth_config = AuthConfig(
             type=AuthType.BASIC,
@@ -64,12 +64,12 @@ class TestChangeTools(unittest.TestCase):
         result = list_change_requests(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertTrue(result["success"])
-        self.assertEqual(len(result["change_requests"]), 2)
-        self.assertEqual(result["count"], 2)
-        self.assertEqual(result["total"], 2)
-        self.assertEqual(result["change_requests"][0]["sys_id"], "change123")
-        self.assertEqual(result["change_requests"][1]["sys_id"], "change456")
+        assert result["success"]
+        assert len(result["change_requests"]) == 2
+        assert result["count"] == 2
+        assert result["total"] == 2
+        assert result["change_requests"][0]["sys_id"] == "change123"
+        assert result["change_requests"][1]["sys_id"] == "change456"
 
     @patch("servicenow_mcp.tools.change_tools.requests.get")
     def test_list_change_requests_empty_result(self, mock_get):
@@ -88,10 +88,10 @@ class TestChangeTools(unittest.TestCase):
         result = list_change_requests(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertTrue(result["success"])
-        self.assertEqual(len(result["change_requests"]), 0)
-        self.assertEqual(result["count"], 0)
-        self.assertEqual(result["total"], 0)
+        assert result["success"]
+        assert len(result["change_requests"]) == 0
+        assert result["count"] == 0
+        assert result["total"] == 0
 
     @patch("servicenow_mcp.tools.change_tools.requests.get")
     def test_list_change_requests_missing_result(self, mock_get):
@@ -110,10 +110,10 @@ class TestChangeTools(unittest.TestCase):
         result = list_change_requests(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertTrue(result["success"])
-        self.assertEqual(len(result["change_requests"]), 0)
-        self.assertEqual(result["count"], 0)
-        self.assertEqual(result["total"], 0)
+        assert result["success"]
+        assert len(result["change_requests"]) == 0
+        assert result["count"] == 0
+        assert result["total"] == 0
 
     @patch("servicenow_mcp.tools.change_tools.requests.get")
     def test_list_change_requests_error(self, mock_get):
@@ -129,8 +129,8 @@ class TestChangeTools(unittest.TestCase):
         result = list_change_requests(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertFalse(result["success"])
-        self.assertIn("Error listing change requests", result["message"])
+        assert not result["success"]
+        assert "Error listing change requests" in result["message"]
 
     @patch("servicenow_mcp.tools.change_tools.requests.get")
     def test_list_change_requests_with_filters(self, mock_get):
@@ -164,21 +164,21 @@ class TestChangeTools(unittest.TestCase):
         result = list_change_requests(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertTrue(result["success"])
-        self.assertEqual(len(result["change_requests"]), 1)
+        assert result["success"]
+        assert len(result["change_requests"]) == 1
         
         # Verify that the correct query parameters were passed to the request
         args, kwargs = mock_get.call_args
-        self.assertIn("params", kwargs)
-        self.assertIn("sysparm_query", kwargs["params"])
+        assert "params" in kwargs
+        assert "sysparm_query" in kwargs["params"]
         query = kwargs["params"]["sysparm_query"]
         
         # Check that all filters are in the query
-        self.assertIn("state=open", query)
-        self.assertIn("type=normal", query)
-        self.assertIn("category=Hardware", query)
-        self.assertIn("assignment_group=IT Support", query)
-        self.assertIn("short_description=Test", query)
+        assert "state=open" in query
+        assert "type=normal" in query
+        assert "category=Hardware" in query
+        assert "assignment_group=IT Support" in query
+        assert "short_description=Test" in query
         # The timeframe filter adds a date comparison, which is harder to test exactly
 
     @patch("servicenow_mcp.tools.change_tools.requests.post")
@@ -212,9 +212,9 @@ class TestChangeTools(unittest.TestCase):
         result = create_change_request(server_config_with_headers, self.auth_manager, params)
 
         # Verify the result
-        self.assertTrue(result["success"])
-        self.assertEqual(result["change_request"]["sys_id"], "change123")
-        self.assertEqual(result["change_request"]["number"], "CHG0010001")
+        assert result["success"]
+        assert result["change_request"]["sys_id"] == "change123"
+        assert result["change_request"]["number"] == "CHG0010001"
 
     @patch("servicenow_mcp.tools.change_tools.requests.post")
     def test_create_change_request_with_serverconfig_no_get_headers(self, mock_post):
@@ -245,8 +245,8 @@ class TestChangeTools(unittest.TestCase):
         result = create_change_request(real_server_config, mock_auth_manager, params)
         
         # The function should detect the issue and return an error message
-        self.assertFalse(result["success"])
-        self.assertIn("Cannot find get_headers method", result["message"])
+        assert not result["success"]
+        assert "Cannot find get_headers method" in result["message"]
         
         # Verify that the post method was never called
         mock_post.assert_not_called()
@@ -279,10 +279,10 @@ class TestChangeTools(unittest.TestCase):
         result = create_change_request(self.server_config, self.auth_manager, params)
         
         # The function should still work correctly
-        self.assertTrue(result["success"])
-        self.assertEqual(result["change_request"]["sys_id"], "change123")
-        self.assertEqual(result["change_request"]["number"], "CHG0010001")
+        assert result["success"]
+        assert result["change_request"]["sys_id"] == "change123"
+        assert result["change_request"]["number"] == "CHG0010001"
 
 
 if __name__ == "__main__":
-    unittest.main() 
+    pytest.main([__file__]) 

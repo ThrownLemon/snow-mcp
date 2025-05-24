@@ -4,7 +4,7 @@ Tests for the changeset tools.
 This module contains tests for the changeset tools in the ServiceNow MCP server.
 """
 
-import unittest
+import pytest
 from unittest.mock import MagicMock, patch
 
 from servicenow_mcp.auth.auth_manager import AuthManager
@@ -27,10 +27,10 @@ from servicenow_mcp.tools.changeset_tools import (
 from servicenow_mcp.utils.config import ServerConfig, AuthConfig, AuthType, BasicAuthConfig
 
 
-class TestChangesetTools(unittest.TestCase):
+class TestChangesetTools:
     """Tests for the changeset tools."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set up test fixtures."""
         auth_config = AuthConfig(
             type=AuthType.BASIC,
@@ -76,22 +76,22 @@ class TestChangesetTools(unittest.TestCase):
         result = list_changesets(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertTrue(result["success"])
-        self.assertEqual(len(result["changesets"]), 1)
-        self.assertEqual(result["changesets"][0]["sys_id"], "123")
-        self.assertEqual(result["changesets"][0]["name"], "Test Changeset")
+        assert result["success"]
+        assert len(result["changesets"]) == 1
+        assert result["changesets"][0]["sys_id"] == "123"
+        assert result["changesets"][0]["name"] == "Test Changeset"
 
         # Verify the API call
         mock_get.assert_called_once()
         args, kwargs = mock_get.call_args
-        self.assertEqual(args[0], "https://test.service-now.com/api/now/table/sys_update_set")
-        self.assertEqual(kwargs["headers"], {"Authorization": "Bearer test"})
-        self.assertEqual(kwargs["params"]["sysparm_limit"], 10)
-        self.assertEqual(kwargs["params"]["sysparm_offset"], 0)
-        self.assertIn("sysparm_query", kwargs["params"])
-        self.assertIn("state=in_progress", kwargs["params"]["sysparm_query"])
-        self.assertIn("application=Test App", kwargs["params"]["sysparm_query"])
-        self.assertIn("developer=test.user", kwargs["params"]["sysparm_query"])
+        assert args[0] == "https://test.service-now.com/api/now/table/sys_update_set"
+        assert kwargs["headers"] == {"Authorization": "Bearer test"}
+        assert kwargs["params"]["sysparm_limit"] == 10
+        assert kwargs["params"]["sysparm_offset"] == 0
+        assert "sysparm_query" in kwargs["params"]
+        assert "state=in_progress" in kwargs["params"]["sysparm_query"]
+        assert "application=Test App" in kwargs["params"]["sysparm_query"]
+        assert "developer=test.user" in kwargs["params"]["sysparm_query"]
 
     @patch("servicenow_mcp.tools.changeset_tools.requests.get")
     def test_get_changeset_details(self, mock_get):
@@ -138,27 +138,23 @@ class TestChangesetTools(unittest.TestCase):
         result = get_changeset_details(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertTrue(result["success"])
-        self.assertEqual(result["changeset"]["sys_id"], "123")
-        self.assertEqual(result["changeset"]["name"], "Test Changeset")
-        self.assertEqual(len(result["changes"]), 1)
-        self.assertEqual(result["changes"][0]["sys_id"], "456")
-        self.assertEqual(result["changes"][0]["name"], "test_file.py")
+        assert result["success"]
+        assert result["changeset"]["sys_id"] == "123"
+        assert result["changeset"]["name"] == "Test Changeset"
+        assert len(result["changes"]) == 1
+        assert result["changes"][0]["sys_id"] == "456"
+        assert result["changes"][0]["name"] == "test_file.py"
 
         # Verify the API calls
-        self.assertEqual(mock_get.call_count, 2)
+        assert mock_get.call_count == 2
         first_call_args, first_call_kwargs = mock_get.call_args_list[0]
-        self.assertEqual(
-            first_call_args[0], "https://test.service-now.com/api/now/table/sys_update_set/123"
-        )
-        self.assertEqual(first_call_kwargs["headers"], {"Authorization": "Bearer test"})
+        assert first_call_args[0] == "https://test.service-now.com/api/now/table/sys_update_set/123"
+        assert first_call_kwargs["headers"] == {"Authorization": "Bearer test"}
 
         second_call_args, second_call_kwargs = mock_get.call_args_list[1]
-        self.assertEqual(
-            second_call_args[0], "https://test.service-now.com/api/now/table/sys_update_xml"
-        )
-        self.assertEqual(second_call_kwargs["headers"], {"Authorization": "Bearer test"})
-        self.assertEqual(second_call_kwargs["params"]["sysparm_query"], "update_set=123")
+        assert second_call_args[0] == "https://test.service-now.com/api/now/table/sys_update_xml"
+        assert second_call_kwargs["headers"] == {"Authorization": "Bearer test"}
+        assert second_call_kwargs["params"]["sysparm_query"] == "update_set=123"
 
     @patch("servicenow_mcp.tools.changeset_tools.requests.post")
     def test_create_changeset(self, mock_post):
@@ -186,21 +182,21 @@ class TestChangesetTools(unittest.TestCase):
         result = create_changeset(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertTrue(result["success"])
-        self.assertEqual(result["changeset"]["sys_id"], "123")
-        self.assertEqual(result["changeset"]["name"], "Test Changeset")
-        self.assertEqual(result["message"], "Changeset created successfully")
+        assert result["success"]
+        assert result["changeset"]["sys_id"] == "123"
+        assert result["changeset"]["name"] == "Test Changeset"
+        assert result["message"] == "Changeset created successfully"
 
         # Verify the API call
         mock_post.assert_called_once()
         args, kwargs = mock_post.call_args
-        self.assertEqual(args[0], "https://test.service-now.com/api/now/table/sys_update_set")
-        self.assertEqual(kwargs["headers"]["Authorization"], "Bearer test")
-        self.assertEqual(kwargs["headers"]["Content-Type"], "application/json")
-        self.assertEqual(kwargs["json"]["name"], "Test Changeset")
-        self.assertEqual(kwargs["json"]["application"], "Test App")
-        self.assertEqual(kwargs["json"]["developer"], "test.user")
-        self.assertEqual(kwargs["json"]["description"], "Test description")
+        assert args[0] == "https://test.service-now.com/api/now/table/sys_update_set"
+        assert kwargs["headers"]["Authorization"] == "Bearer test"
+        assert kwargs["headers"]["Content-Type"] == "application/json"
+        assert kwargs["json"]["name"] == "Test Changeset"
+        assert kwargs["json"]["application"] == "Test App"
+        assert kwargs["json"]["developer"] == "test.user"
+        assert kwargs["json"]["description"] == "Test description"
 
     @patch("servicenow_mcp.tools.changeset_tools.requests.patch")
     def test_update_changeset(self, mock_patch):
@@ -228,21 +224,19 @@ class TestChangesetTools(unittest.TestCase):
         result = update_changeset(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertTrue(result["success"])
-        self.assertEqual(result["changeset"]["sys_id"], "123")
-        self.assertEqual(result["changeset"]["name"], "Updated Changeset")
-        self.assertEqual(result["message"], "Changeset updated successfully")
+        assert result["success"]
+        assert result["changeset"]["sys_id"] == "123"
+        assert result["changeset"]["name"] == "Updated Changeset"
+        assert result["message"] == "Changeset updated successfully"
 
         # Verify the API call
         mock_patch.assert_called_once()
         args, kwargs = mock_patch.call_args
-        self.assertEqual(
-            args[0], "https://test.service-now.com/api/now/table/sys_update_set/123"
-        )
-        self.assertEqual(kwargs["headers"]["Authorization"], "Bearer test")
-        self.assertEqual(kwargs["headers"]["Content-Type"], "application/json")
-        self.assertEqual(kwargs["json"]["name"], "Updated Changeset")
-        self.assertEqual(kwargs["json"]["state"], "in_progress")
+        assert args[0] == "https://test.service-now.com/api/now/table/sys_update_set/123"
+        assert kwargs["headers"]["Authorization"] == "Bearer test"
+        assert kwargs["headers"]["Content-Type"] == "application/json"
+        assert kwargs["json"]["name"] == "Updated Changeset"
+        assert kwargs["json"]["state"] == "in_progress"
 
     @patch("servicenow_mcp.tools.changeset_tools.requests.patch")
     def test_commit_changeset(self, mock_patch):
@@ -269,21 +263,19 @@ class TestChangesetTools(unittest.TestCase):
         result = commit_changeset(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertTrue(result["success"])
-        self.assertEqual(result["changeset"]["sys_id"], "123")
-        self.assertEqual(result["changeset"]["state"], "complete")
-        self.assertEqual(result["message"], "Changeset committed successfully")
+        assert result["success"]
+        assert result["changeset"]["sys_id"] == "123"
+        assert result["changeset"]["state"] == "complete"
+        assert result["message"] == "Changeset committed successfully"
 
         # Verify the API call
         mock_patch.assert_called_once()
         args, kwargs = mock_patch.call_args
-        self.assertEqual(
-            args[0], "https://test.service-now.com/api/now/table/sys_update_set/123"
-        )
-        self.assertEqual(kwargs["headers"]["Authorization"], "Bearer test")
-        self.assertEqual(kwargs["headers"]["Content-Type"], "application/json")
-        self.assertEqual(kwargs["json"]["state"], "complete")
-        self.assertEqual(kwargs["json"]["description"], "Commit message")
+        assert args[0] == "https://test.service-now.com/api/now/table/sys_update_set/123"
+        assert kwargs["headers"]["Authorization"] == "Bearer test"
+        assert kwargs["headers"]["Content-Type"] == "application/json"
+        assert kwargs["json"]["state"] == "complete"
+        assert kwargs["json"]["description"] == "Commit message"
 
     @patch("servicenow_mcp.tools.changeset_tools.requests.patch")
     def test_publish_changeset(self, mock_patch):
@@ -310,21 +302,19 @@ class TestChangesetTools(unittest.TestCase):
         result = publish_changeset(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertTrue(result["success"])
-        self.assertEqual(result["changeset"]["sys_id"], "123")
-        self.assertEqual(result["changeset"]["state"], "published")
-        self.assertEqual(result["message"], "Changeset published successfully")
+        assert result["success"]
+        assert result["changeset"]["sys_id"] == "123"
+        assert result["changeset"]["state"] == "published"
+        assert result["message"] == "Changeset published successfully"
 
         # Verify the API call
         mock_patch.assert_called_once()
         args, kwargs = mock_patch.call_args
-        self.assertEqual(
-            args[0], "https://test.service-now.com/api/now/table/sys_update_set/123"
-        )
-        self.assertEqual(kwargs["headers"]["Authorization"], "Bearer test")
-        self.assertEqual(kwargs["headers"]["Content-Type"], "application/json")
-        self.assertEqual(kwargs["json"]["state"], "published")
-        self.assertEqual(kwargs["json"]["description"], "Publish notes")
+        assert args[0] == "https://test.service-now.com/api/now/table/sys_update_set/123"
+        assert kwargs["headers"]["Authorization"] == "Bearer test"
+        assert kwargs["headers"]["Content-Type"] == "application/json"
+        assert kwargs["json"]["state"] == "published"
+        assert kwargs["json"]["description"] == "Publish notes"
 
     @patch("servicenow_mcp.tools.changeset_tools.requests.post")
     def test_add_file_to_changeset(self, mock_post):
@@ -352,24 +342,24 @@ class TestChangesetTools(unittest.TestCase):
         result = add_file_to_changeset(self.auth_manager, self.server_config, params)
 
         # Verify the result
-        self.assertTrue(result["success"])
-        self.assertEqual(result["file"]["sys_id"], "456")
-        self.assertEqual(result["file"]["name"], "test_file.py")
-        self.assertEqual(result["message"], "File added to changeset successfully")
+        assert result["success"]
+        assert result["file"]["sys_id"] == "456"
+        assert result["file"]["name"] == "test_file.py"
+        assert result["message"] == "File added to changeset successfully"
 
         # Verify the API call
         mock_post.assert_called_once()
         args, kwargs = mock_post.call_args
-        self.assertEqual(args[0], "https://test.service-now.com/api/now/table/sys_update_xml")
-        self.assertEqual(kwargs["headers"]["Authorization"], "Bearer test")
-        self.assertEqual(kwargs["headers"]["Content-Type"], "application/json")
-        self.assertEqual(kwargs["json"]["update_set"], "123")
-        self.assertEqual(kwargs["json"]["name"], "test_file.py")
-        self.assertEqual(kwargs["json"]["payload"], "print('Hello, world!')")
-        self.assertEqual(kwargs["json"]["type"], "file")
+        assert args[0] == "https://test.service-now.com/api/now/table/sys_update_xml"
+        assert kwargs["headers"]["Authorization"] == "Bearer test"
+        assert kwargs["headers"]["Content-Type"] == "application/json"
+        assert kwargs["json"]["update_set"] == "123"
+        assert kwargs["json"]["name"] == "test_file.py"
+        assert kwargs["json"]["payload"] == "print('Hello, world!')"
+        assert kwargs["json"]["type"] == "file"
 
 
-class TestChangesetToolsParams(unittest.TestCase):
+class TestChangesetToolsParams:
     """Tests for the changeset tools parameter classes."""
 
     def test_list_changesets_params(self):
@@ -383,18 +373,18 @@ class TestChangesetToolsParams(unittest.TestCase):
             timeframe="recent",
             query="name=test",
         )
-        self.assertEqual(params.limit, 20)
-        self.assertEqual(params.offset, 10)
-        self.assertEqual(params.state, "in_progress")
-        self.assertEqual(params.application, "Test App")
-        self.assertEqual(params.developer, "test.user")
-        self.assertEqual(params.timeframe, "recent")
-        self.assertEqual(params.query, "name=test")
+        assert params.limit == 20
+        assert params.offset == 10
+        assert params.state == "in_progress"
+        assert params.application == "Test App"
+        assert params.developer == "test.user"
+        assert params.timeframe == "recent"
+        assert params.query == "name=test"
 
     def test_get_changeset_details_params(self):
         """Test GetChangesetDetailsParams."""
         params = GetChangesetDetailsParams(changeset_id="123")
-        self.assertEqual(params.changeset_id, "123")
+        assert params.changeset_id == "123"
 
     def test_create_changeset_params(self):
         """Test CreateChangesetParams."""
@@ -404,10 +394,10 @@ class TestChangesetToolsParams(unittest.TestCase):
             application="Test App",
             developer="test.user",
         )
-        self.assertEqual(params.name, "Test Changeset")
-        self.assertEqual(params.description, "Test description")
-        self.assertEqual(params.application, "Test App")
-        self.assertEqual(params.developer, "test.user")
+        assert params.name == "Test Changeset"
+        assert params.description == "Test description"
+        assert params.application == "Test App"
+        assert params.developer == "test.user"
 
     def test_update_changeset_params(self):
         """Test UpdateChangesetParams."""
@@ -418,11 +408,11 @@ class TestChangesetToolsParams(unittest.TestCase):
             state="in_progress",
             developer="test.user",
         )
-        self.assertEqual(params.changeset_id, "123")
-        self.assertEqual(params.name, "Updated Changeset")
-        self.assertEqual(params.description, "Updated description")
-        self.assertEqual(params.state, "in_progress")
-        self.assertEqual(params.developer, "test.user")
+        assert params.changeset_id == "123"
+        assert params.name == "Updated Changeset"
+        assert params.description == "Updated description"
+        assert params.state == "in_progress"
+        assert params.developer == "test.user"
 
     def test_commit_changeset_params(self):
         """Test CommitChangesetParams."""
@@ -430,8 +420,8 @@ class TestChangesetToolsParams(unittest.TestCase):
             changeset_id="123",
             commit_message="Commit message",
         )
-        self.assertEqual(params.changeset_id, "123")
-        self.assertEqual(params.commit_message, "Commit message")
+        assert params.changeset_id == "123"
+        assert params.commit_message == "Commit message"
 
     def test_publish_changeset_params(self):
         """Test PublishChangesetParams."""
@@ -439,8 +429,8 @@ class TestChangesetToolsParams(unittest.TestCase):
             changeset_id="123",
             publish_notes="Publish notes",
         )
-        self.assertEqual(params.changeset_id, "123")
-        self.assertEqual(params.publish_notes, "Publish notes")
+        assert params.changeset_id == "123"
+        assert params.publish_notes == "Publish notes"
 
     def test_add_file_to_changeset_params(self):
         """Test AddFileToChangesetParams."""
@@ -449,10 +439,10 @@ class TestChangesetToolsParams(unittest.TestCase):
             file_path="test_file.py",
             file_content="print('Hello, world!')",
         )
-        self.assertEqual(params.changeset_id, "123")
-        self.assertEqual(params.file_path, "test_file.py")
-        self.assertEqual(params.file_content, "print('Hello, world!')")
+        assert params.changeset_id == "123"
+        assert params.file_path == "test_file.py"
+        assert params.file_content == "print('Hello, world!')"
 
 
 if __name__ == "__main__":
-    unittest.main() 
+    pytest.main([__file__]) 

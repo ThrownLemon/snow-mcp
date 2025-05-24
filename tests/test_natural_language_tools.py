@@ -2,7 +2,7 @@
 Tests for the ServiceNow MCP natural language tools.
 """
 
-import unittest
+import pytest
 from unittest.mock import MagicMock, patch
 
 import requests
@@ -19,10 +19,10 @@ from servicenow_mcp.tools.natural_language_tools import (
 from servicenow_mcp.utils.config import AuthConfig, AuthType, BasicAuthConfig, ServerConfig
 
 
-class TestNaturalLanguageTools(unittest.TestCase):
+class TestNaturalLanguageTools:
     """Test cases for the natural language tools."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set up test fixtures."""
         self.config = ServerConfig(
             instance_url="https://example.service-now.com",
@@ -47,16 +47,16 @@ class TestNaturalLanguageTools(unittest.TestCase):
         params = NaturalLanguageSearchParams(query="find all incidents about SAP", table="incident")
         result = natural_language_search(self.config, self.auth_manager, params)
 
-        self.assertTrue(result["success"])
-        self.assertEqual(len(result["results"]), 1)
-        self.assertEqual(result["results"][0]["short_description"], "Found via NLQ")
-        self.assertIn("LIKEfind", result["query_used"])
-        self.assertIn("LIKEincidents", result["query_used"])
-        self.assertIn("LIKEabout", result["query_used"])
+        assert result["success"]
+        assert len(result["results"]) == 1
+        assert result["results"][0]["short_description"] == "Found via NLQ"
+        assert "LIKEfind" in result["query_used"]
+        assert "LIKEincidents" in result["query_used"]
+        assert "LIKEabout" in result["query_used"]
         # Note: The actual implementation doesn't include LIKESAP in the query
         mock_get.assert_called_once()
         args, kwargs = mock_get.call_args
-        self.assertEqual(args[0], f"{self.config.instance_url}/api/now/table/incident")
+        assert args[0] == f"{self.config.instance_url}/api/now/table/incident"
 
     @patch("requests.patch")
     def test_natural_language_update(self, mock_patch):
@@ -73,13 +73,13 @@ class TestNaturalLanguageTools(unittest.TestCase):
         )
         result = natural_language_update(self.config, self.auth_manager, params)
 
-        self.assertTrue(result["success"])
-        self.assertTrue(result["updated"])
-        self.assertEqual(result["result"]["comments"], "I'm working on it")
+        assert result["success"]
+        assert result["updated"]
+        assert result["result"]["comments"] == "I'm working on it"
         mock_patch.assert_called_once()
         args, kwargs = mock_patch.call_args
-        self.assertEqual(args[0], f"{self.config.instance_url}/api/now/table/incident/INC0010001")
-        self.assertEqual(kwargs["json"]["comments"], "I'm working on it")
+        assert args[0] == f"{self.config.instance_url}/api/now/table/incident/INC0010001"
+        assert kwargs["json"]["comments"] == "I'm working on it"
 
     @patch("requests.get")
     @patch("requests.patch")
@@ -109,18 +109,18 @@ class TestNaturalLanguageTools(unittest.TestCase):
         )
         result = update_script(self.config, self.auth_manager, params)
 
-        self.assertTrue(result["success"])
-        self.assertTrue(result["updated"])
-        self.assertEqual(result["result"]["script"], "var newScript = true;")
+        assert result["success"]
+        assert result["updated"]
+        assert result["result"]["script"] == "var newScript = true;"
         mock_get.assert_called_once()
         mock_patch.assert_called_once()
         
         get_args, get_kwargs = mock_get.call_args
-        self.assertEqual(get_args[0], f"{self.config.instance_url}/api/now/table/sys_script_include?sysparm_query=name=MyScriptInclude^ORsys_id=MyScriptInclude")
+        assert get_args[0] == f"{self.config.instance_url}/api/now/table/sys_script_include?sysparm_query=name=MyScriptInclude^ORsys_id=MyScriptInclude"
 
         patch_args, patch_kwargs = mock_patch.call_args
-        self.assertEqual(patch_args[0], f"{self.config.instance_url}/api/now/table/sys_script_include/script123")
-        self.assertEqual(patch_kwargs["json"]["script"], "var newScript = true;")
+        assert patch_args[0] == f"{self.config.instance_url}/api/now/table/sys_script_include/script123"
+        assert patch_kwargs["json"]["script"] == "var newScript = true;"
 
     @patch("requests.get")
     def test_natural_language_search_api_error(self, mock_get):
@@ -128,8 +128,8 @@ class TestNaturalLanguageTools(unittest.TestCase):
         mock_get.side_effect = requests.exceptions.RequestException("API Error")
         params = NaturalLanguageSearchParams(query="find stuff", table="incident")
         result = natural_language_search(self.config, self.auth_manager, params)
-        self.assertFalse(result["success"])
-        self.assertIn("API Error", result["message"]) # Changed expected error message
+        assert not result["success"]
+        assert "API Error" in result["message"] # Changed expected error message
 
     @patch("requests.patch")
     def test_natural_language_update_api_error(self, mock_patch):
@@ -137,18 +137,18 @@ class TestNaturalLanguageTools(unittest.TestCase):
         mock_patch.side_effect = requests.exceptions.RequestException("API Error")
         params = NaturalLanguageUpdateParams(query="Update incident INC0010001 priority to high")
         result = natural_language_update(self.config, self.auth_manager, params)
-        self.assertFalse(result["success"])
-        self.assertFalse(result["updated"])
-        self.assertIn("API Error", result["message"]) # Changed expected error message
+        assert not result["success"]
+        assert not result["updated"]
+        assert "API Error" in result["message"] # Changed expected error message
 
     @patch("requests.get")
     def test_natural_language_update_parse_error(self, mock_get): # mock_get is not used but patch is needed
         """Test natural_language_update with a query that doesn't parse."""
         params = NaturalLanguageUpdateParams(query="This is not a valid update command")
         result = natural_language_update(self.config, self.auth_manager, params)
-        self.assertFalse(result["success"])
-        self.assertFalse(result["updated"])
-        self.assertIn("Could not parse update command", result["message"])
+        assert not result["success"]
+        assert not result["updated"]
+        assert "Could not parse update command" in result["message"]
 
     @patch("requests.get")
     @patch("requests.patch")
@@ -162,10 +162,10 @@ class TestNaturalLanguageTools(unittest.TestCase):
         params = UpdateScriptParams(script_id="NonExistentScript", script_type="script_include", script="var test;")
         result = update_script(self.config, self.auth_manager, params)
 
-        self.assertFalse(result["success"])
-        self.assertFalse(result["updated"])
-        self.assertIn("No script_include found", result["message"])
+        assert not result["success"]
+        assert not result["updated"]
+        assert "No script_include found" in result["message"]
         mock_patch.assert_not_called()
 
 if __name__ == "__main__":
-    unittest.main()
+    pytest.main([__file__])

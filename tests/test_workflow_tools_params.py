@@ -1,4 +1,4 @@
-import unittest
+import pytest
 from unittest.mock import MagicMock, patch
 
 from servicenow_mcp.auth.auth_manager import AuthManager
@@ -11,10 +11,10 @@ from servicenow_mcp.tools.workflow_tools import (
 )
 
 
-class TestWorkflowToolsParams(unittest.TestCase):
+class TestWorkflowToolsParams:
     """Test parameter handling in workflow tools."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set up test fixtures."""
         # Create mock objects for AuthManager and ServerConfig
         self.auth_manager = MagicMock(spec=AuthManager)
@@ -26,14 +26,14 @@ class TestWorkflowToolsParams(unittest.TestCase):
     def test_get_auth_and_config_correct_order(self):
         """Test _get_auth_and_config with parameters in the correct order."""
         auth, config = _get_auth_and_config(self.auth_manager, self.server_config)
-        self.assertEqual(auth, self.auth_manager)
-        self.assertEqual(config, self.server_config)
+        assert auth == self.auth_manager
+        assert config == self.server_config
 
     def test_get_auth_and_config_swapped_order(self):
         """Test _get_auth_and_config with parameters in the swapped order."""
         auth, config = _get_auth_and_config(self.server_config, self.auth_manager)
-        self.assertEqual(auth, self.auth_manager)
-        self.assertEqual(config, self.server_config)
+        assert auth == self.auth_manager
+        assert config == self.server_config
 
     def test_get_auth_and_config_error_handling(self):
         """Test _get_auth_and_config error handling with invalid parameters."""
@@ -48,7 +48,7 @@ class TestWorkflowToolsParams(unittest.TestCase):
         del invalid_obj2.get_headers
         del invalid_obj2.instance_url
         
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             _get_auth_and_config(invalid_obj1, invalid_obj2)
 
     @patch('servicenow_mcp.tools.workflow_tools.requests.get')
@@ -65,8 +65,8 @@ class TestWorkflowToolsParams(unittest.TestCase):
         
         # Verify the function called requests.get with the correct parameters
         mock_get.assert_called_once()
-        self.assertEqual(result["count"], 1)
-        self.assertEqual(result["workflows"][0]["name"], "Test Workflow")
+        assert result["count"] == 1
+        assert result["workflows"][0]["name"] == "Test Workflow"
 
     @patch('servicenow_mcp.tools.workflow_tools.requests.get')
     def test_list_workflows_swapped_params(self, mock_get):
@@ -82,8 +82,8 @@ class TestWorkflowToolsParams(unittest.TestCase):
         
         # Verify the function still works correctly
         mock_get.assert_called_once()
-        self.assertEqual(result["count"], 1)
-        self.assertEqual(result["workflows"][0]["name"], "Test Workflow")
+        assert result["count"] == 1
+        assert result["workflows"][0]["name"] == "Test Workflow"
 
     @patch('servicenow_mcp.tools.workflow_tools.requests.get')
     def test_get_workflow_details_correct_params(self, mock_get):
@@ -98,7 +98,7 @@ class TestWorkflowToolsParams(unittest.TestCase):
         
         # Verify the function called requests.get with the correct parameters
         mock_get.assert_called_once()
-        self.assertEqual(result["workflow"]["name"], "Test Workflow")
+        assert result["workflow"]["name"] == "Test Workflow"
 
     @patch('servicenow_mcp.tools.workflow_tools.requests.get')
     def test_get_workflow_details_swapped_params(self, mock_get):
@@ -113,7 +113,7 @@ class TestWorkflowToolsParams(unittest.TestCase):
         
         # Verify the function still works correctly
         mock_get.assert_called_once()
-        self.assertEqual(result["workflow"]["name"], "Test Workflow")
+        assert result["workflow"]["name"] == "Test Workflow"
 
     @patch('servicenow_mcp.tools.workflow_tools.requests.post')
     def test_create_workflow_correct_params(self, mock_post):
@@ -132,8 +132,8 @@ class TestWorkflowToolsParams(unittest.TestCase):
         
         # Verify the function called requests.post with the correct parameters
         mock_post.assert_called_once()
-        self.assertEqual(result["workflow"]["name"], "New Workflow")
-        self.assertEqual(result["message"], "Workflow created successfully")
+        assert result["workflow"]["name"] == "New Workflow"
+        assert result["message"] == "Workflow created successfully"
 
     @patch('servicenow_mcp.tools.workflow_tools.requests.post')
     def test_create_workflow_swapped_params(self, mock_post):
@@ -152,9 +152,9 @@ class TestWorkflowToolsParams(unittest.TestCase):
         
         # Verify the function still works correctly
         mock_post.assert_called_once()
-        self.assertEqual(result["workflow"]["name"], "New Workflow")
-        self.assertEqual(result["message"], "Workflow created successfully")
+        assert result["workflow"]["name"] == "New Workflow"
+        assert result["message"] == "Workflow created successfully"
 
 
 if __name__ == '__main__':
-    unittest.main() 
+    pytest.main([__file__]) 

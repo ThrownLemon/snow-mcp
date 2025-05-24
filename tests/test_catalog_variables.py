@@ -2,7 +2,7 @@
 Tests for the catalog item variables tools.
 """
 
-import unittest
+import pytest
 from unittest.mock import MagicMock, patch
 import requests
 
@@ -17,12 +17,12 @@ from servicenow_mcp.tools.catalog_variables import (
 from servicenow_mcp.utils.config import ServerConfig, AuthConfig, AuthType, BasicAuthConfig
 
 
-class TestCatalogVariablesTools(unittest.TestCase):
+class TestCatalogVariablesTools:
     """
     Test the catalog item variables tools.
     """
 
-    def setUp(self):
+    def setup_method(self):
         """Set up the test environment."""
         self.config = ServerConfig(
             instance_url="https://test.service-now.com",
@@ -68,21 +68,19 @@ class TestCatalogVariablesTools(unittest.TestCase):
         result = create_catalog_item_variable(self.config, self.auth_manager, params)
 
         # Verify result
-        self.assertTrue(result.success)
-        self.assertEqual(result.variable_id, "abc123")
-        self.assertIsNotNone(result.details)
+        assert result.success
+        assert result.variable_id == "abc123"
+        assert result.details is not None
 
         # Verify mock was called correctly
         mock_post.assert_called_once()
         call_args = mock_post.call_args
-        self.assertEqual(
-            call_args[0][0], f"{self.config.instance_url}/api/now/table/item_option_new"
-        )
-        self.assertEqual(call_args[1]["json"]["cat_item"], "item123")
-        self.assertEqual(call_args[1]["json"]["name"], "test_variable")
-        self.assertEqual(call_args[1]["json"]["type"], "string")
-        self.assertEqual(call_args[1]["json"]["question_text"], "Test Variable")
-        self.assertEqual(call_args[1]["json"]["mandatory"], "false")
+        assert call_args[0][0] == f"{self.config.instance_url}/api/now/table/item_option_new"
+        assert call_args[1]["json"]["cat_item"] == "item123"
+        assert call_args[1]["json"]["name"] == "test_variable"
+        assert call_args[1]["json"]["type"] == "string"
+        assert call_args[1]["json"]["question_text"] == "Test Variable"
+        assert call_args[1]["json"]["mandatory"] == "false"
 
     @patch("requests.post")
     def test_create_catalog_item_variable_with_optional_params(self, mock_post):
@@ -126,18 +124,18 @@ class TestCatalogVariablesTools(unittest.TestCase):
         result = create_catalog_item_variable(self.config, self.auth_manager, params)
 
         # Verify result
-        self.assertTrue(result.success)
-        self.assertEqual(result.variable_id, "abc123")
+        assert result.success
+        assert result.variable_id == "abc123"
 
         # Verify mock was called correctly
         mock_post.assert_called_once()
         call_args = mock_post.call_args
-        self.assertEqual(call_args[1]["json"]["reference"], "sys_user")
-        self.assertEqual(call_args[1]["json"]["reference_qual"], "active=true")
-        self.assertEqual(call_args[1]["json"]["help_text"], "Select a user")
-        self.assertEqual(call_args[1]["json"]["default_value"], "admin")
-        self.assertEqual(call_args[1]["json"]["description"], "Reference to a user")
-        self.assertEqual(call_args[1]["json"]["order"], 100)
+        assert call_args[1]["json"]["reference"] == "sys_user"
+        assert call_args[1]["json"]["reference_qual"] == "active=true"
+        assert call_args[1]["json"]["help_text"] == "Select a user"
+        assert call_args[1]["json"]["default_value"] == "admin"
+        assert call_args[1]["json"]["description"] == "Reference to a user"
+        assert call_args[1]["json"]["order"] == 100
 
     @patch("requests.post")
     def test_create_catalog_item_variable_error(self, mock_post):
@@ -157,8 +155,8 @@ class TestCatalogVariablesTools(unittest.TestCase):
         result = create_catalog_item_variable(self.config, self.auth_manager, params)
 
         # Verify result
-        self.assertFalse(result.success)
-        self.assertTrue("failed" in result.message.lower())
+        assert not result.success
+        assert "failed" in result.message.lower()
 
     @patch("requests.get")
     def test_list_catalog_item_variables(self, mock_get):
@@ -198,23 +196,19 @@ class TestCatalogVariablesTools(unittest.TestCase):
         result = list_catalog_item_variables(self.config, self.auth_manager, params)
 
         # Verify result
-        self.assertTrue(result.success)
-        self.assertEqual(result.count, 2)
-        self.assertEqual(len(result.variables), 2)
-        self.assertEqual(result.variables[0]["sys_id"], "var1")
-        self.assertEqual(result.variables[1]["sys_id"], "var2")
+        assert result.success
+        assert result.count == 2
+        assert len(result.variables) == 2
+        assert result.variables[0]["sys_id"] == "var1"
+        assert result.variables[1]["sys_id"] == "var2"
 
         # Verify mock was called correctly
         mock_get.assert_called_once()
         call_args = mock_get.call_args
-        self.assertEqual(
-            call_args[0][0], f"{self.config.instance_url}/api/now/table/item_option_new"
-        )
-        self.assertEqual(
-            call_args[1]["params"]["sysparm_query"], "cat_item=item123^ORDERBYorder"
-        )
-        self.assertEqual(call_args[1]["params"]["sysparm_display_value"], "true")
-        self.assertEqual(call_args[1]["params"]["sysparm_exclude_reference_link"], "false")
+        assert call_args[0][0] == f"{self.config.instance_url}/api/now/table/item_option_new"
+        assert call_args[1]["params"]["sysparm_query"] == "cat_item=item123^ORDERBYorder"
+        assert call_args[1]["params"]["sysparm_display_value"] == "true"
+        assert call_args[1]["params"]["sysparm_exclude_reference_link"] == "false"
 
     @patch("requests.get")
     def test_list_catalog_item_variables_with_pagination(self, mock_get):
@@ -237,17 +231,14 @@ class TestCatalogVariablesTools(unittest.TestCase):
         result = list_catalog_item_variables(self.config, self.auth_manager, params)
 
         # Verify result
-        self.assertTrue(result.success)
+        assert result.success
 
         # Verify mock was called correctly with pagination
         mock_get.assert_called_once()
         call_args = mock_get.call_args
-        self.assertEqual(call_args[1]["params"]["sysparm_limit"], 10)
-        self.assertEqual(call_args[1]["params"]["sysparm_offset"], 20)
-        self.assertEqual(
-            call_args[1]["params"]["sysparm_fields"],
-            "sys_id,name,type,question_text,order,mandatory",
-        )
+        assert call_args[1]["params"]["sysparm_limit"] == 10
+        assert call_args[1]["params"]["sysparm_offset"] == 20
+        assert call_args[1]["params"]["sysparm_fields"] == "sys_id,name,type,question_text,order,mandatory"
 
     @patch("requests.get")
     def test_list_catalog_item_variables_error(self, mock_get):
@@ -264,8 +255,8 @@ class TestCatalogVariablesTools(unittest.TestCase):
         result = list_catalog_item_variables(self.config, self.auth_manager, params)
 
         # Verify result
-        self.assertFalse(result.success)
-        self.assertTrue("failed" in result.message.lower())
+        assert not result.success
+        assert "failed" in result.message.lower()
 
     @patch("requests.patch")
     def test_update_catalog_item_variable(self, mock_patch):
@@ -295,20 +286,17 @@ class TestCatalogVariablesTools(unittest.TestCase):
         result = update_catalog_item_variable(self.config, self.auth_manager, params)
 
         # Verify result
-        self.assertTrue(result.success)
-        self.assertEqual(result.variable_id, "var1")
-        self.assertIsNotNone(result.details)
+        assert result.success
+        assert result.variable_id == "var1"
+        assert result.details is not None
 
         # Verify mock was called correctly
         mock_patch.assert_called_once()
         call_args = mock_patch.call_args
-        self.assertEqual(
-            call_args[0][0],
-            f"{self.config.instance_url}/api/now/table/item_option_new/var1",
-        )
-        self.assertEqual(call_args[1]["json"]["question_text"], "Updated Variable")
-        self.assertEqual(call_args[1]["json"]["mandatory"], "true")
-        self.assertEqual(call_args[1]["json"]["help_text"], "This is help text")
+        assert call_args[0][0] == f"{self.config.instance_url}/api/now/table/item_option_new/var1"
+        assert call_args[1]["json"]["question_text"] == "Updated Variable"
+        assert call_args[1]["json"]["mandatory"] == "true"
+        assert call_args[1]["json"]["help_text"] == "This is help text"
 
     @patch("requests.patch")
     def test_update_catalog_item_variable_no_params(self, mock_patch):
@@ -322,8 +310,8 @@ class TestCatalogVariablesTools(unittest.TestCase):
         result = update_catalog_item_variable(self.config, self.auth_manager, params)
 
         # Verify result - should fail since no update parameters provided
-        self.assertFalse(result.success)
-        self.assertEqual(result.message, "No update parameters provided")
+        assert not result.success
+        assert result.message == "No update parameters provided"
 
         # Verify mock was not called
         mock_patch.assert_not_called()
@@ -344,9 +332,9 @@ class TestCatalogVariablesTools(unittest.TestCase):
         result = update_catalog_item_variable(self.config, self.auth_manager, params)
 
         # Verify result
-        self.assertFalse(result.success)
-        self.assertTrue("failed" in result.message.lower())
+        assert not result.success
+        assert "failed" in result.message.lower()
 
 
 if __name__ == "__main__":
-    unittest.main() 
+    pytest.main([__file__]) 
